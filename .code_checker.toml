@@ -1,0 +1,18 @@
+[defaults]
+# only report issues with a severity >= to this value
+severity = "style"
+
+[compiler]
+# extra flags to pass on to the compiler
+# extra_flags = [ "-std=c++11", "-Wextra", "-Werror" ]
+
+[compile_commands]
+# command to execute to generate compile_commands.json
+generate_cmd = ""
+# search for compile_commands.json in this paths
+search_paths = ["./build"]
+filter = ["-rrorr"]
+
+[clang_tidy]
+# arguments to -header-filter
+header_filter = ".*/googletest/.*"
