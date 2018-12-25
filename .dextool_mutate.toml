@@ -6,11 +6,15 @@ db = "dextool_mutate.sqlite3"
 extra_flags = [ "-D_POSIX_PATH_MAX=1024" ]
 [compile_commands]
 search_paths = ["./build/compile_commands.json"]
+filter = ["-c", "-o", "-m", "-nodevicelib", "-Waddr-space-convert", "-non-static", "-Bstatic", "-Bdynamic", "-Xbind-lazy", "-Xbind-now", "-f", "-static", "-shared", "-rdynamic", "-s", "-l", "-L", "-z", "-u", "-T", "-Xlinker", "-l", "-MT", "-MF", "-MD", "-MQ", "-MMD", "-MP", "-MG", "-E", "-cc1", "-S", "-M", "-MM", "-###", "-Werror", "-Wunused-private-field"]
 [mutant_test]
 test_cmd = "test.sh"
 # test_cmd_timeout = 7000
 build_cmd = "build.sh"
 analyze_using_builtin = ["gtest", "ctest"]
+oldest_mutants = "test"
+oldest_mutants_nr = 2
+
 [test_group]
 [test_group.uc1]
 description = "Parameterized Tests"
