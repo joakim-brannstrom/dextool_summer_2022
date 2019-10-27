@@ -11,9 +11,14 @@ filter = ["-c", "-o", "-m", "-nodevicelib", "-Waddr-space-convert", "-non-static
 test_cmd = "test.sh"
 # test_cmd_timeout = 7000
 build_cmd = "build.sh"
-analyze_using_builtin = ["gtest", "ctest"]
-oldest_mutants = "test"
-oldest_mutants_nr = 2
+analyze_using_builtin = ["gtest"]
+# oldest_mutants = "test"
+# oldest_mutants_nr = 2
+
+# detected_new_test_case = "doNothing"|"resetAlive"
+# how to behave when test cases are detected as having been removed
+# should the test and the gathered statistics be remove too?
+# detected_dropped_test_case = "remove"
 
 [test_group]
 [test_group.uc1]
