@@ -1,5 +1,7 @@
 [workarea]
 restrict = ["googlemock/include", "googlemock/src", "googletest/include", "googletest/src"]
+[analyze]
+exclude = ["googlemock/test", "googletest/test"]
 [database]
 db = "dextool_mutate.sqlite3"
 [compiler]
