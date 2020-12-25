@@ -55,7 +55,7 @@ filter = ["-c", "-o", "-m", "-nodevicelib", "-Waddr-space-convert", "-non-static
 [mutant_test]
 
 # command to build the program **and** test suite.
-build_cmd = "./build.sh"
+build_cmd = "cd build && make -j$(nproc)"
 
 # at least one of test_cmd_dir (recommended) or test_cmd needs to be specified.
 
