@@ -2,28 +2,41 @@
 # base path (absolute or relative) to look for C/C++ files to mutate.
 root = "."
 
-# files and/or directories (relative to root) to be the **only** sources to mutate.
-restrict = ["googlemock/include", "googlemock/src", "googletest/include", "googletest/src"]
+# only those files that fully match the glob filter will be mutated.
+# glob filter are relative to root.
+include = ["googlemock/include/*", "googlemock/src/*", "googletest/include/*", "googletest/src/*"]
+exclude = []
 
 [generic]
 
 # default mutants to test if none is specified by --mutant
 # note that this affects the analyze phase thus the --mutant argument must be one of those specified here
+# available options are: ["all", "ror", "rorp", "lcr", "aor", "uoi", "abs", "sdl", "dcc", "dcr", "lcrb"]
 mutants = ["lcr", "lcrb", "sdl", "uoi", "dcr"]
 
 [analyze]
 
-# files and/or directories (relative to root) to be excluded from analysis.
-exclude = ["googlemock/test", "googletest/test"]
+# glob filter which include/exclude matched files (relative to root) from analysis.
+include = ["*"]
+exclude = ["googlemock/test/*", "googletest/test/*"]
 
 # number of threads to be used for analysis (default is the number of cores).
 # threads = 1
 
 # remove files from the database that are no longer found during analysis.
-# prune = true
+prune = true
 
 # maximum number of mutants per schema (zero means no limit).
 # mutants_per_schema = 100
+
+# checksum the files in this directories and warn if a mutation status is older
+# than the newest file. The path can be a file or a directory. Directories
+# are traveresed.
+test_paths = ["googletest/test", "googlemock/test"]
+
+# glob filter which include/exclude matched test files (relative to root) from analysis.
+test_include = ["*/*.cc"]
+# test_exclude = []
 
 [database]
 
