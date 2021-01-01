@@ -14,6 +14,9 @@ exclude = []
 # available options are: ["all", "ror", "rorp", "lcr", "aor", "uoi", "abs", "sdl", "dcc", "dcr", "lcrb"]
 mutants = ["lcr", "lcrb", "sdl", "uoi", "dcr"]
 
+# Use coverage to reduce the tested mutants
+use_coverage = true
+
 [analyze]
 
 # glob filter which include/exclude matched files (relative to root) from analysis.
