@@ -646,47 +646,82 @@ std::string UnitTestOptions::GetAbsolutePathToOutputFile() {
   return result.string();
 }
 
-// Returns true if and only if the wildcard pattern matches the string.
-// The first ':' or '\0' character in pattern marks the end of it.
+// Returns true if and only if the wildcard pattern matches the string. Each
+// pattern consists of regular characters, single-character wildcards (?), and
+// multi-character wildcards (*).
 //
-// This recursive algorithm isn't very efficient, but is clear and
-// works well enough for matching test names, which are short.
-bool UnitTestOptions::PatternMatchesString(const char *pattern,
-                                           const char *str) {
-  switch (*pattern) {
-    case '\0':
-    case ':':  // Either ':' or '\0' marks the end of the pattern.
-      return *str == '\0';
-    case '?':  // Matches any single character.
-      return *str != '\0' && PatternMatchesString(pattern + 1, str + 1);
-    case '*':  // Matches any string (possibly empty) of characters.
-      return (*str != '\0' && PatternMatchesString(pattern, str + 1)) ||
-          PatternMatchesString(pattern + 1, str);
-    default:  // Non-special character.  Matches itself.
-      return *pattern == *str &&
-          PatternMatchesString(pattern + 1, str + 1);
+// This function implements a linear-time string globbing algorithm based on
+// https://research.swtch.com/glob.
+static bool PatternMatchesString(const std::string& name_str,
+                                 const char* pattern, const char* pattern_end) {
+  const char* name = name_str.c_str();
+  const char* const name_begin = name;
+  const char* const name_end = name + name_str.size();
+
+  const char* pattern_next = pattern;
+  const char* name_next = name;
+
+  while (pattern < pattern_end || name < name_end) {
+    if (pattern < pattern_end) {
+      switch (*pattern) {
+        default:  // Match an ordinary character.
+          if (name < name_end && *name == *pattern) {
+            ++pattern;
+            ++name;
+            continue;
+          }
+          break;
+        case '?':  // Match any single character.
+          if (name < name_end) {
+            ++pattern;
+            ++name;
+            continue;
+          }
+          break;
+        case '*':
+          // Match zero or more characters. Start by skipping over the wildcard
+          // and matching zero characters from name. If that fails, restart and
+          // match one more character than the last attempt.
+          pattern_next = pattern;
+          name_next = name + 1;
+          ++pattern;
+          continue;
+      }
+    }
+    // Failed to match a character. Restart if possible.
+    if (name_begin < name_next && name_next <= name_end) {
+      pattern = pattern_next;
+      name = name_next;
+      continue;
+    }
+    return false;
   }
+  return true;
 }
 
-bool UnitTestOptions::MatchesFilter(
-    const std::string& name, const char* filter) {
-  const char *cur_pattern = filter;
-  for (;;) {
-    if (PatternMatchesString(cur_pattern, name.c_str())) {
+bool UnitTestOptions::MatchesFilter(const std::string& name_str,
+                                    const char* filter) {
+  // The filter is a list of patterns separated by colons (:).
+  const char* pattern = filter;
+  while (true) {
+    // Find the bounds of this pattern.
+    const char* const next_sep = strchr(pattern, ':');
+    const char* const pattern_end =
+        next_sep != nullptr ? next_sep : pattern + strlen(pattern);
+
+    // Check if this pattern matches name_str.
+    if (PatternMatchesString(name_str, pattern, pattern_end)) {
       return true;
     }
 
-    // Finds the next pattern in the filter.
-    cur_pattern = strchr(cur_pattern, ':');
-
-    // Returns if no more pattern can be found.
-    if (cur_pattern == nullptr) {
+    // Give up on this pattern. However, if we found a pattern separator (:),
+    // advance to the next pattern (skipping over the separator) and restart.
+    if (next_sep == nullptr) {
       return false;
     }
-
-    // Skips the pattern separater (the ':' character).
-    cur_pattern++;
+    pattern = next_sep + 1;
   }
+  return true;
 }
 
 // Returns true if and only if the user-specified filter matches the test
@@ -996,7 +1031,25 @@ std::string UnitTestImpl::CurrentOsStackTraceExceptTop(int skip_count) {
       );  // NOLINT
 }
 
-// Returns the current time in milliseconds.
+// A helper class for measuring elapsed times.
+class Timer {
+ public:
+  Timer() : start_(std::chrono::steady_clock::now()) {}
+
+  // Return time elapsed in milliseconds since the timer was created.
+  TimeInMillis Elapsed() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::steady_clock::now() - start_)
+        .count();
+  }
+
+ private:
+  std::chrono::time_point<std::chrono::steady_clock> start_;
+};
+
+// Returns a timestamp as milliseconds since the epoch. Note this time may jump
+// around subject to adjustments by the system, to measure elapsed time use
+// Timer instead.
 TimeInMillis GetTimeInMillis() {
   return std::chrono::duration_cast<std::chrono::milliseconds>(
              std::chrono::system_clock::now() -
@@ -1602,57 +1655,6 @@ AssertionResult DoubleLE(const char* expr1, const char* expr2,
 }
 
 namespace internal {
-
-// The helper function for {ASSERT|EXPECT}_EQ with int or enum
-// arguments.
-AssertionResult CmpHelperEQ(const char* lhs_expression,
-                            const char* rhs_expression,
-                            BiggestInt lhs,
-                            BiggestInt rhs) {
-  if (lhs == rhs) {
-    return AssertionSuccess();
-  }
-
-  return EqFailure(lhs_expression,
-                   rhs_expression,
-                   FormatForComparisonFailureMessage(lhs, rhs),
-                   FormatForComparisonFailureMessage(rhs, lhs),
-                   false);
-}
-
-// A macro for implementing the helper functions needed to implement
-// ASSERT_?? and EXPECT_?? with integer or enum arguments.  It is here
-// just to avoid copy-and-paste of similar code.
-#define GTEST_IMPL_CMP_HELPER_(op_name, op)\
-AssertionResult CmpHelper##op_name(const char* expr1, const char* expr2, \
-                                   BiggestInt val1, BiggestInt val2) {\
-  if (val1 op val2) {\
-    return AssertionSuccess();\
-  } else {\
-    return AssertionFailure() \
-        << "Expected: (" << expr1 << ") " #op " (" << expr2\
-        << "), actual: " << FormatForComparisonFailureMessage(val1, val2)\
-        << " vs " << FormatForComparisonFailureMessage(val2, val1);\
-  }\
-}
-
-// Implements the helper function for {ASSERT|EXPECT}_NE with int or
-// enum arguments.
-GTEST_IMPL_CMP_HELPER_(NE, !=)
-// Implements the helper function for {ASSERT|EXPECT}_LE with int or
-// enum arguments.
-GTEST_IMPL_CMP_HELPER_(LE, <=)
-// Implements the helper function for {ASSERT|EXPECT}_LT with int or
-// enum arguments.
-GTEST_IMPL_CMP_HELPER_(LT, < )
-// Implements the helper function for {ASSERT|EXPECT}_GE with int or
-// enum arguments.
-GTEST_IMPL_CMP_HELPER_(GE, >=)
-// Implements the helper function for {ASSERT|EXPECT}_GT with int or
-// enum arguments.
-GTEST_IMPL_CMP_HELPER_(GT, > )
-
-#undef GTEST_IMPL_CMP_HELPER_
 
 // The helper function for {ASSERT|EXPECT}_STREQ.
 AssertionResult CmpHelperSTREQ(const char* lhs_expression,
@@ -2840,7 +2842,8 @@ void TestInfo::Run() {
   // Notifies the unit test event listeners that a test is about to start.
   repeater->OnTestStart(*this);
 
-  const TimeInMillis start = internal::GetTimeInMillis();
+  result_.set_start_timestamp(internal::GetTimeInMillis());
+  internal::Timer timer;
 
   impl->os_stack_trace_getter()->UponLeavingGTest();
 
@@ -2865,8 +2868,7 @@ void TestInfo::Run() {
         test, &Test::DeleteSelf_, "the test fixture's destructor");
   }
 
-  result_.set_start_timestamp(start);
-  result_.set_elapsed_time(internal::GetTimeInMillis() - start);
+  result_.set_elapsed_time(timer.Elapsed());
 
   // Notifies the unit test event listener that a test has just finished.
   repeater->OnTestEnd(*this);
@@ -3008,6 +3010,7 @@ void TestSuite::Run() {
       this, &TestSuite::RunSetUpTestSuite, "SetUpTestSuite()");
 
   start_timestamp_ = internal::GetTimeInMillis();
+  internal::Timer timer;
   for (int i = 0; i < total_test_count(); i++) {
     GetMutableTestInfo(i)->Run();
     if (GTEST_FLAG(fail_fast) && GetMutableTestInfo(i)->result()->Failed()) {
@@ -3017,7 +3020,7 @@ void TestSuite::Run() {
       break;
     }
   }
-  elapsed_time_ = internal::GetTimeInMillis() - start_timestamp_;
+  elapsed_time_ = timer.Elapsed();
 
   impl->os_stack_trace_getter()->UponLeavingGTest();
   internal::HandleExceptionsInMethodIfSupported(
@@ -3269,7 +3272,8 @@ bool ShouldUseColor(bool stdout_is_tty) {
 // This routine must actually emit the characters rather than return a string
 // that would be colored when printed, as can be done on Linux.
 
-static void ColoredPrintf(GTestColor color, const char* fmt, ...) {
+GTEST_ATTRIBUTE_PRINTF_(2, 3)
+static void ColoredPrintf(GTestColor color, const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
 
@@ -3924,6 +3928,10 @@ class XmlUnitTestResultPrinter : public EmptyTestEventListener {
   // Streams an XML CDATA section, escaping invalid CDATA sequences as needed.
   static void OutputXmlCDataSection(::std::ostream* stream, const char* data);
 
+  // Streams an XML representation of a TestResult object.
+  static void OutputXmlTestResult(::std::ostream* stream,
+                                  const TestResult& result);
+
   // Streams an XML representation of a TestInfo object.
   static void OutputXmlTestInfo(::std::ostream* stream,
                                 const char* test_suite_name,
@@ -4182,6 +4190,11 @@ void XmlUnitTestResultPrinter::OutputXmlTestInfo(::std::ostream* stream,
       FormatEpochTimeInMillisAsIso8601(result.start_timestamp()));
   OutputXmlAttribute(stream, kTestsuite, "classname", test_suite_name);
 
+  OutputXmlTestResult(stream, result);
+}
+
+void XmlUnitTestResultPrinter::OutputXmlTestResult(::std::ostream* stream,
+                                                   const TestResult& result) {
   int failures = 0;
   int skips = 0;
   for (int i = 0; i < result.total_part_count(); ++i) {
@@ -4386,6 +4399,10 @@ class JsonUnitTestResultPrinter : public EmptyTestEventListener {
                             const std::string& indent,
                             bool comma = true);
 
+  // Streams a JSON representation of a TestResult object.
+  static void OutputJsonTestResult(::std::ostream* stream,
+                                   const TestResult& result);
+
   // Streams a JSON representation of a TestInfo object.
   static void OutputJsonTestInfo(::std::ostream* stream,
                                  const char* test_suite_name,
@@ -4577,6 +4594,13 @@ void JsonUnitTestResultPrinter::OutputJsonTestInfo(::std::ostream* stream,
   OutputJsonKey(stream, kTestsuite, "classname", test_suite_name, kIndent,
                 false);
   *stream << TestPropertiesAsJson(result, kIndent);
+
+  OutputJsonTestResult(stream, result);
+}
+
+void JsonUnitTestResultPrinter::OutputJsonTestResult(::std::ostream* stream,
+                                                     const TestResult& result) {
+  const std::string kIndent = Indent(10);
 
   int failures = 0;
   for (int i = 0; i < result.total_part_count(); ++i) {
@@ -5680,7 +5704,7 @@ bool UnitTestImpl::RunAllTests() {
     // assertions executed before RUN_ALL_TESTS().
     ClearNonAdHocTestResult();
 
-    const TimeInMillis start = GetTimeInMillis();
+    Timer timer;
 
     // Shuffles test suites and tests if requested.
     if (has_tests_to_run && GTEST_FLAG(shuffle)) {
@@ -5729,6 +5753,14 @@ bool UnitTestImpl::RunAllTests() {
             break;
           }
         }
+      } else if (Test::HasFatalFailure()) {
+        // If there was a fatal failure during the global setup then we know we
+        // aren't going to run any tests. Explicitly mark all of the tests as
+        // skipped to make this obvious in the output.
+        for (int test_index = 0; test_index < total_test_suite_count();
+             test_index++) {
+          GetMutableSuiteCase(test_index)->Skip();
+        }
       }
 
       // Tears down all environments in reverse order afterwards.
@@ -5738,7 +5770,7 @@ bool UnitTestImpl::RunAllTests() {
       repeater->OnEnvironmentsTearDownEnd(*parent_);
     }
 
-    elapsed_time_ = GetTimeInMillis() - start;
+    elapsed_time_ = timer.Elapsed();
 
     // Tells the unit test event listener that the tests have just finished.
     repeater->OnTestIterationEnd(*parent_, i);

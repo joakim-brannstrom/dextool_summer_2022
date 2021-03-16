@@ -241,7 +241,7 @@
 //
 // To learn more about using these macros, please search for 'MATCHER'
 // on
-// https://github.com/google/googletest/blob/master/googlemock/docs/cook_book.md
+// https://github.com/google/googletest/blob/master/docs/gmock_cook_book.md
 //
 // This file also implements some commonly used argument matchers.  More
 // matchers can be defined by the user implementing the
@@ -252,8 +252,8 @@
 
 // GOOGLETEST_CM0002 DO NOT DELETE
 
-#ifndef GMOCK_INCLUDE_GMOCK_GMOCK_MATCHERS_H_
-#define GMOCK_INCLUDE_GMOCK_GMOCK_MATCHERS_H_
+#ifndef GOOGLETEST_GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_MATCHERS_H_
+#define GOOGLETEST_GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_MATCHERS_H_
 
 #include <algorithm>
 #include <cmath>
@@ -735,31 +735,25 @@ OutIter TransformTupleValues(Func f, const Tuple& t, OutIter out) {
   return TransformTupleValuesHelper<Tuple, Func, OutIter>::Run(f, t, out);
 }
 
-// Implements A<T>().
-template <typename T>
-class AnyMatcherImpl : public MatcherInterface<const T&> {
- public:
-  bool MatchAndExplain(const T& /* x */,
-                       MatchResultListener* /* listener */) const override {
-    return true;
-  }
-  void DescribeTo(::std::ostream* os) const override { *os << "is anything"; }
-  void DescribeNegationTo(::std::ostream* os) const override {
-    // This is mostly for completeness' safe, as it's not very useful
-    // to write Not(A<bool>()).  However we cannot completely rule out
-    // such a possibility, and it doesn't hurt to be prepared.
-    *os << "never matches";
-  }
-};
-
 // Implements _, a matcher that matches any value of any
 // type.  This is a polymorphic matcher, so we need a template type
 // conversion operator to make it appearing as a Matcher<T> for any
 // type T.
 class AnythingMatcher {
  public:
+  using is_gtest_matcher = void;
+
   template <typename T>
-  operator Matcher<T>() const { return A<T>(); }
+  bool MatchAndExplain(const T& /* x */, std::ostream* /* listener */) const {
+    return true;
+  }
+  void DescribeTo(std::ostream* os) const { *os << "is anything"; }
+  void DescribeNegationTo(::std::ostream* os) const {
+    // This is mostly for completeness' sake, as it's not very useful
+    // to write Not(A<bool>()).  However we cannot completely rule out
+    // such a possibility, and it doesn't hurt to be prepared.
+    *os << "never matches";
+  }
 };
 
 // Implements the polymorphic IsNull() matcher, which matches any raw or smart
@@ -3443,7 +3437,9 @@ class UnorderedElementsAreMatcherImpl
       : UnorderedElementsAreMatcherImplBase(matcher_flags) {
     for (; first != last; ++first) {
       matchers_.push_back(MatcherCast<const Element&>(*first));
-      matcher_describers().push_back(matchers_.back().GetDescriber());
+    }
+    for (const auto& m : matchers_) {
+      matcher_describers().push_back(m.GetDescriber());
     }
   }
 
@@ -4068,12 +4064,14 @@ const internal::AnythingMatcher _ = {};
 // Creates a matcher that matches any value of the given type T.
 template <typename T>
 inline Matcher<T> A() {
-  return Matcher<T>(new internal::AnyMatcherImpl<T>());
+  return _;
 }
 
 // Creates a matcher that matches any value of the given type T.
 template <typename T>
-inline Matcher<T> An() { return A<T>(); }
+inline Matcher<T> An() {
+  return _;
+}
 
 template <typename T, typename M>
 Matcher<T> internal::MatcherCastImpl<T, M>::CastImpl(
@@ -5391,4 +5389,4 @@ GTEST_DISABLE_MSC_WARNINGS_POP_()  //  4251 5046
 // declarations from this file.
 #include "gmock/internal/custom/gmock-matchers.h"
 
-#endif  // GMOCK_INCLUDE_GMOCK_GMOCK_MATCHERS_H_
+#endif  // GOOGLETEST_GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_MATCHERS_H_

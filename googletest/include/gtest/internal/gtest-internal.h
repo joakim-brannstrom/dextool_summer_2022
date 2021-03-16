@@ -34,8 +34,8 @@
 
 // GOOGLETEST_CM0001 DO NOT DELETE
 
-#ifndef GTEST_INCLUDE_GTEST_INTERNAL_GTEST_INTERNAL_H_
-#define GTEST_INCLUDE_GTEST_INTERNAL_GTEST_INTERNAL_H_
+#ifndef GOOGLETEST_INCLUDE_GTEST_INTERNAL_GTEST_INTERNAL_H_
+#define GOOGLETEST_INCLUDE_GTEST_INTERNAL_GTEST_INTERNAL_H_
 
 #include "gtest/internal/gtest-port.h"
 
@@ -590,8 +590,6 @@ GTEST_API_ TestInfo* MakeAndRegisterTestInfo(
 // and returns false.  None of pstr, *pstr, and prefix can be NULL.
 GTEST_API_ bool SkipPrefix(const char* prefix, const char** pstr);
 
-#if GTEST_HAS_TYPED_TEST || GTEST_HAS_TYPED_TEST_P
-
 GTEST_DISABLE_MSC_WARNINGS_PUSH_(4251 \
 /* class A needs to have dll-interface to be used by clients of class B */)
 
@@ -822,8 +820,6 @@ class TypeParameterizedTestSuite<Fixture, internal::None, Types> {
     return true;
   }
 };
-
-#endif  // GTEST_HAS_TYPED_TEST || GTEST_HAS_TYPED_TEST_P
 
 // Returns the current OS stack trace as an std::string.
 //
@@ -1561,4 +1557,4 @@ class NeverThrown {
               test_suite_name, test_name)>);                                  \
   void GTEST_TEST_CLASS_NAME_(test_suite_name, test_name)::TestBody()
 
-#endif  // GTEST_INCLUDE_GTEST_INTERNAL_GTEST_INTERNAL_H_
+#endif  // GOOGLETEST_INCLUDE_GTEST_INTERNAL_GTEST_INTERNAL_H_

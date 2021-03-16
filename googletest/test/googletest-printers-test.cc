@@ -32,15 +32,16 @@
 //
 // This file tests the universal value printer.
 
-#include <ctype.h>
-#include <string.h>
 #include <algorithm>
+#include <cctype>
 #include <cstdint>
+#include <cstring>
 #include <deque>
 #include <forward_list>
 #include <limits>
 #include <list>
 #include <map>
+#include <memory>
 #include <set>
 #include <sstream>
 #include <string>
@@ -228,6 +229,33 @@ class PathLike {
 }  // namespace foo
 
 namespace testing {
+namespace {
+template <typename T>
+class Wrapper {
+ public:
+  explicit Wrapper(T&& value) : value_(std::forward<T>(value)) {}
+
+  const T& value() const { return value_; }
+
+ private:
+  T value_;
+};
+
+}  // namespace
+
+namespace internal {
+template <typename T>
+class UniversalPrinter<Wrapper<T>> {
+ public:
+  static void Print(const Wrapper<T>& w, ::std::ostream* os) {
+    *os << "Wrapper(";
+    UniversalPrint(w.value(), os);
+    *os << ')';
+  }
+};
+}  // namespace internal
+
+
 namespace gtest_printers_test {
 
 using ::std::deque;
@@ -1561,6 +1589,61 @@ TEST(PrintToStringTest, WorksForCharArrayWithEmbeddedNul) {
                           "\n    As Text: \"From ä — ẑ\"");
 }
 
+#if GTEST_HAS_RTTI
+template <typename T>
+class PrintToStringTest : public testing::Test {
+ public:
+  using TestType = T;
+};
+
+struct PrintBase {
+  virtual ~PrintBase() = default;
+};
+struct PrintDerived : PrintBase {};
+
+using PrintToStringTestTypes =
+    testing::Types<void, int, const volatile int*, PrintBase, PrintDerived>;
+TYPED_TEST_SUITE(PrintToStringTest, PrintToStringTestTypes);
+
+// Returns `true` if `haystack` contains `needle`.
+//
+// FIXME: Replace with `EXPECT_THAT(haystack, HasSubstr(needle))` once
+// GoogleTest starts depending on GoogleMock.
+bool ContainsSubstr(const std::string& haystack, const std::string& needle) {
+  return haystack.find(needle) != std::string::npos;
+}
+
+TYPED_TEST(PrintToStringTest, IncludesNameWithTypeInfoAndTypeIndex) {
+  const ::std::type_info& info = typeid(typename TestFixture::TestType);
+  SCOPED_TRACE(info.name());
+  EXPECT_TRUE(ContainsSubstr(PrintToString(info), info.name()));
+  EXPECT_TRUE(
+      ContainsSubstr(PrintToString(::std::type_index{info}), info.name()));
+}
+
+TEST(PrintToStringTest, IncludesNameWithTypeInfoAndTypeIndexViaBaseRef) {
+  PrintDerived derived;
+  PrintBase& base = derived;
+
+  {
+    const ::std::type_info& derived_info = typeid(derived);
+    SCOPED_TRACE(derived_info.name());
+    EXPECT_TRUE(
+        ContainsSubstr(PrintToString(derived_info), derived_info.name()));
+    EXPECT_TRUE(ContainsSubstr(PrintToString(::std::type_index{derived_info}),
+                               derived_info.name()));
+  }
+  {
+    const ::std::type_info& base_ref_info = typeid(base);
+    SCOPED_TRACE(base_ref_info.name());
+    EXPECT_TRUE(
+        ContainsSubstr(PrintToString(base_ref_info), base_ref_info.name()));
+    EXPECT_TRUE(ContainsSubstr(PrintToString(::std::type_index{base_ref_info}),
+                               base_ref_info.name()));
+  }
+}
+#endif  // GTEST_HAS_RTTI
+
 TEST(IsValidUTF8Test, IllFormedUTF8) {
   // The following test strings are ill-formed UTF-8 and are printed
   // as hex only (or ASCII, in case of ASCII bytes) because IsValidUTF8() is
@@ -1666,6 +1749,13 @@ TEST(UniversalPrintTest, WorksForReference) {
   EXPECT_EQ("123", ss.str());
 }
 
+TEST(UniversalPrintTest, WorksForPairWithConst) {
+  std::pair<const Wrapper<std::string>, int> p(Wrapper<std::string>("abc"), 1);
+  ::std::stringstream ss;
+  UniversalPrint(p, &ss);
+  EXPECT_EQ("(Wrapper(\"abc\"), 1)", ss.str());
+}
+
 TEST(UniversalPrintTest, WorksForCString) {
   const char* s1 = "abc";
   ::std::stringstream ss1;
@@ -1693,6 +1783,63 @@ TEST(UniversalPrintTest, WorksForCharArray) {
   ::std::stringstream ss2;
   UniversalPrint(mutable_str, &ss2);
   EXPECT_EQ("\"\\\"Line\\0 1\\\"\\nLine 2\"", ss2.str());
+}
+
+TEST(UniversalPrintTest, IncompleteType) {
+  struct Incomplete;
+  char some_object = 0;
+  EXPECT_EQ("(incomplete type)",
+            PrintToString(reinterpret_cast<Incomplete&>(some_object)));
+}
+
+TEST(UniversalPrintTest, SmartPointers) {
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<int>()));
+  std::unique_ptr<int> p(new int(17));
+  EXPECT_EQ("(ptr = " + PrintPointer(p.get()) + ", value = 17)",
+            PrintToString(p));
+  std::unique_ptr<int[]> p2(new int[2]);
+  EXPECT_EQ("(" + PrintPointer(p2.get()) + ")", PrintToString(p2));
+
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<int>()));
+  std::shared_ptr<int> p3(new int(1979));
+  EXPECT_EQ("(ptr = " + PrintPointer(p3.get()) + ", value = 1979)",
+            PrintToString(p3));
+#if __cpp_lib_shared_ptr_arrays >= 201611L
+  std::shared_ptr<int[]> p4(new int[2]);
+  EXPECT_EQ("(" + PrintPointer(p4.get()) + ")", PrintToString(p4));
+#endif
+
+  // modifiers
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<int>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<const int>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<volatile int>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<volatile const int>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<int[]>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<const int[]>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<volatile int[]>()));
+  EXPECT_EQ("(nullptr)",
+            PrintToString(std::unique_ptr<volatile const int[]>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<int>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<const int>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<volatile int>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<volatile const int>()));
+#if __cpp_lib_shared_ptr_arrays >= 201611L
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<int[]>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<const int[]>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<volatile int[]>()));
+  EXPECT_EQ("(nullptr)",
+            PrintToString(std::shared_ptr<volatile const int[]>()));
+#endif
+
+  // void
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<void, void (*)(void*)>(
+                             nullptr, nullptr)));
+  EXPECT_EQ("(" + PrintPointer(p.get()) + ")",
+            PrintToString(
+                std::unique_ptr<void, void (*)(void*)>(p.get(), [](void*) {})));
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<void>()));
+  EXPECT_EQ("(" + PrintPointer(p.get()) + ")",
+            PrintToString(std::shared_ptr<void>(p.get(), [](void*) {})));
 }
 
 TEST(UniversalTersePrintTupleFieldsToStringsTestWithStd, PrintsEmptyTuple) {

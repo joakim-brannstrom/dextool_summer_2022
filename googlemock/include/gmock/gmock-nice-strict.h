@@ -60,8 +60,8 @@
 
 // GOOGLETEST_CM0002 DO NOT DELETE
 
-#ifndef GMOCK_INCLUDE_GMOCK_GMOCK_NICE_STRICT_H_
-#define GMOCK_INCLUDE_GMOCK_GMOCK_NICE_STRICT_H_
+#ifndef GOOGLETEST_GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_NICE_STRICT_H_
+#define GOOGLETEST_GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_NICE_STRICT_H_
 
 #include <type_traits>
 
@@ -97,7 +97,8 @@ constexpr bool HasStrictnessModifier() {
 // deregistration. This guarantees that MockClass's constructor and destructor
 // run with the same level of strictness as its instance methods.
 
-#if GTEST_OS_WINDOWS && (defined(_MSC_VER) || defined(__clang__))
+#if GTEST_OS_WINDOWS && !GTEST_OS_WINDOWS_MINGW && \
+    (defined(_MSC_VER) || defined(__clang__))
 // We need to mark these classes with this declspec to ensure that
 // the empty base class optimization is performed.
 #define GTEST_INTERNAL_EMPTY_BASE_CLASS __declspec(empty_bases)
@@ -259,4 +260,4 @@ class GTEST_INTERNAL_EMPTY_BASE_CLASS StrictMock
 
 }  // namespace testing
 
-#endif  // GMOCK_INCLUDE_GMOCK_GMOCK_NICE_STRICT_H_
+#endif  // GOOGLETEST_GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_NICE_STRICT_H_

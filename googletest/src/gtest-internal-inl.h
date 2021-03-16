@@ -31,8 +31,8 @@
 // This file contains purely Google Test's internal implementation.  Please
 // DO NOT #INCLUDE IT IN A USER PROGRAM.
 
-#ifndef GTEST_SRC_GTEST_INTERNAL_INL_H_
-#define GTEST_SRC_GTEST_INTERNAL_INL_H_
+#ifndef GOOGLETEST_SRC_GTEST_INTERNAL_INL_H_
+#define GOOGLETEST_SRC_GTEST_INTERNAL_INL_H_
 
 #ifndef _WIN32_WCE
 # include <errno.h>
@@ -393,13 +393,6 @@ class GTEST_API_ UnitTestOptions {
   static std::string GetAbsolutePathToOutputFile();
 
   // Functions for processing the gtest_filter flag.
-
-  // Returns true if and only if the wildcard pattern matches the string.
-  // The first ':' or '\0' character in pattern marks the end of it.
-  //
-  // This recursive algorithm isn't very efficient, but is clear and
-  // works well enough for matching test names, which are short.
-  static bool PatternMatchesString(const char *pattern, const char *str);
 
   // Returns true if and only if the user-specified filter matches the test
   // suite name and the test name.
@@ -1225,4 +1218,4 @@ class StreamingListener : public EmptyTestEventListener {
 
 GTEST_DISABLE_MSC_WARNINGS_POP_()  //  4251
 
-#endif  // GTEST_SRC_GTEST_INTERNAL_INL_H_
+#endif  // GOOGLETEST_SRC_GTEST_INTERNAL_INL_H_
