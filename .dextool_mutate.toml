@@ -1,4 +1,5 @@
 [workarea]
+
 # base path (absolute or relative) to look for C/C++ files to mutate.
 root = "."
 
@@ -11,12 +12,14 @@ exclude = []
 
 # default mutants to test if none is specified by --mutant
 # note that this affects the analyze phase thus the --mutant argument must be one of those specified here
-# available options are: ["all", "ror", "rorp", "lcr", "aor", "uoi", "abs", "sdl", "dcc", "dcr", "lcrb"]
+# available options are: ["all", "ror", "rorp", "lcr", "aor", "uoi", "sdl", "dcr", "lcrb", "aors"]
 mutants = ["lcr", "lcrb", "sdl", "uoi", "dcr"]
 
 # Use coverage to reduce the tested mutants
 use_coverage = true
 
+# Default is to inject the runtime in all roots. A root is a file either provided by --in
+# or a file in compile_commands.json.
 # If specified then the coverage and schemata runtime is only injected in these files.
 # paths are relative to root.
 inject_runtime_impl = [["googlemock/src/gmock-all.cc", "cpp"], ["googletest/src/gtest-all.cc", "cpp"]]
@@ -33,12 +36,15 @@ exclude = ["googlemock/test/*", "googletest/test/*"]
 # remove files from the database that are no longer found during analysis.
 prune = true
 
+# minimum number of mutants per schema.
+# min_mutants_per_schema = 3
+
 # maximum number of mutants per schema (zero means no limit).
-# mutants_per_schema = 100
+# mutants_per_schema = 1000
 
 # checksum the files in this directories and warn if a mutation status is older
 # than the newest file. The path can be a file or a directory. Directories
-# are traveresed.
+# are traveresed. All paths are relative to root.
 test_paths = ["googletest/test", "googlemock/test"]
 
 # glob filter which include/exclude matched test files (relative to root) from analysis.
@@ -56,10 +62,14 @@ db = "dextool_mutate.sqlite3"
 extra_flags = [ "-D_POSIX_PATH_MAX=1024" ]
 
 # force system includes to use -I instead of -isystem
-# force_system_includes = true
+# force_system_includes = false
 
 # system include paths to use instead of the ones in compile_commands.json
 # use_compiler_system_includes = "/path/to/c++"
+
+# allow compilation errors.
+# This is useful to active when clang complain about e.g. gcc specific builtins
+# allow_errors = true
 
 [compile_commands]
 
@@ -83,13 +93,13 @@ build_cmd = "cd build && make -j$(nproc)"
 # test_cmd_dir = ["./build/test"]
 
 # flags to add to all executables found in test_cmd_dir.
-# test_cmd_dir_flag = ["--gtest_filter", "-*foo"]
+# test_cmd_dir_flag = ["--gtest_filter", "-foo*"]
 
 # command(s) to test the program.
 # the arguments for test_cmd can be an array of multiple test commands
 # 1. ["test1.sh", "test2.sh"]
 # 2. [["test1.sh", "-x"], "test2.sh"]
-# test_cmd = [["build/googletest/gtest_unittest"]]
+# 3. [["/bin/make", "test"]]
 test_cmd = [["build/googlemock/shared_gmock_test_"], ["build/googlemock/gmock_stress_test"], ["build/googlemock/gmock-port_test"], ["build/googlemock/gmock-spec-builders_test"], ["build/googlemock/gmock-internal-utils_test"], ["build/googlemock/gmock_link_test"], ["build/googlemock/gmock-cardinalities_test"], ["build/googlemock/gmock-nice-strict_test"], ["build/googlemock/gmock-more-actions_test"], ["build/googlemock/gmock_ex_test"], ["build/googlemock/gmock_test"], ["build/googlemock/gmock-actions_test"], ["build/googlemock/gmock-function-mocker_test"], ["build/googlemock/gmock_no_rtti_test"], ["build/googlemock/gmock-more-actions_no_exception_test"], ["build/googlemock/gmock-matchers_test"], ["build/googletest/gtest-death-test_ex_nocatch_test"], ["build/googletest/gtest_throw_on_failure_ex_test"], ["build/googletest/gtest_premature_exit_test"], ["build/googletest/gtest_stress_test"], ["build/googletest/gtest_repeat_test"], ["build/googletest/gtest-death-test_ex_catch_test"], ["build/googletest/googletest-throw-on-failure-test_"], ["build/googletest/gtest_list_output_unittest_"], ["build/googletest/googletest-list-tests-unittest_"], ["build/googletest/gtest_xml_outfile1_test_"], ["build/googletest/googletest-options-test"], ["build/googletest/gtest_no_test_unittest"], ["build/googletest/googletest-shuffle-test_"], ["build/googletest/googletest-message-test"], ["build/googletest/googletest-death-test-test"], ["build/googletest/googletest-filepath-test"], ["build/googletest/googletest-listener-test"], ["build/googletest/gtest-unittest-api_test"], ["build/googletest/gtest_environment_test"], ["build/googletest/gtest_no_rtti_unittest"], ["build/googletest/gtest_pred_impl_unittest"], ["build/googletest/googletest-uninitialized-test_"], ["build/googletest/googletest-port-test"], ["build/googletest/gtest_prod_test"], ["build/googletest/googletest-printers-test"], ["build/googletest/gtest-typed-test_test"], ["build/googletest/gtest_sole_header_test"], ["build/googletest/gtest_main_unittest"], ["build/googletest/googletest-param-test-test"], ["build/googletest/googletest-test-part-test"], ["build/googletest/googletest-catch-exceptions-no-ex-test_"], ["build/googletest/gtest_skip_in_environment_setup_test"], ["build/googletest/gtest_skip_test"], ["build/googletest/gtest_xml_outfile2_test_"], ["build/googletest/gtest_unittest"]]
 # failing [["build/googlemock/gmock_leak_test_"], ["build/googlemock/gmock_output_test_"], ["build/googletest/googletest-break-on-failure-unittest_"], ["build/googletest/googletest-output-test_"], ["build/googletest/gtest_xml_output_unittest_"], ["build/googletest/googletest-filter-unittest_"], ["build/googletest/googletest-color-test_"], ["build/googletest/googletest-env-var-test_"], ["build/googletest/gtest_dll_test_"], ["build/googletest/gtest_help_test_"], ["build/googletest/googletest-catch-exceptions-ex-test_"]]
 # test_cmd_timeout = 7000
@@ -106,28 +116,32 @@ test_cmd = [["build/googlemock/shared_gmock_test_"], ["build/googlemock/gmock_st
 # built-in analyzer of output from testing frameworks to find failing test cases
 analyze_using_builtin = ["gtest"]
 
-# determine in what order mutations are chosen
-# order = "random"|"consecutive"
+# determine in what order mutants are chosen
+# available options are: "random" "consecutive"
+# order = "random"
 
 # how to behave when new test cases are found
+# available options are: "doNothing" "resetAlive"
 detected_new_test_case = "resetAlive"
 
 # how to behave when test cases are detected as having been removed
 # should the test and the gathered statistics be removed too?
+# available options are: "doNothing" "remove"
 detected_dropped_test_case = "remove"
 
 # how the oldest mutants should be treated.
 # It is recommended to test them again.
 # Because you may have changed the test suite so mutants that where previously killed by the test suite now survive.
-# oldest_mutants = "nothing"|"test"
+# available options are: "nothing" "test"
+oldest_mutants = "test"
 
 # how many of the oldest mutants to do the above with
 # oldest_mutants_nr = 10
 # how many of the oldest mutants to do the above with
-# oldest_mutants_percentage = 1.0
+oldest_mutants_percentage = 1.0
 
 # number of threads to be used when running tests in parallel (default is the number of cores).
-# parallel_test = 1
+# parallel_test = 8
 
 # stop executing tests as soon as a test command fails.
 # This speed up the test phase but the report of test cases killing mutants is less accurate
@@ -140,10 +154,23 @@ use_schemata = true
 # it is a slowdown but nice robustness that is usually worth having
 check_schemata = true
 
+# Enable continues sanity check of the build environment and test suite.
+# Run the test suite every 100 mutant to see that the test suite is OK when no mutants are injected.
+# If the test suite fails the previous 100 mutants will be reverted and mutation testing stops.
+continues_check_test_suite = true
+
+# How often the test suite check is performed
+continues_check_test_suite_period = 100
+
 [report]
 
 # default style to use
-# style = "plain"|"compiler"|"json"|"html"
+# available options are: "plain" "compiler" "json" "html"
+style = "plain"
+
+# default report sections when no --section is specified
+# available options are: ["alive", "killed", "all_mut", "summary", "mut_stat", "tc_killed", "tc_stat", "tc_map", "tc_suggestion", "tc_killed_no_mutants", "tc_full_overlap", "tc_full_overlap_with_mutation_id", "tc_groups", "tc_min_set", "tc_similarity", "tc_groups_similarity", "treemap", "mut_recommend_kill", "diff", "tc_unique", "marked_mutants", "trend"]
+sections = ["summary"]
 
 [test_group]
 
