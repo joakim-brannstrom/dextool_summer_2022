@@ -251,9 +251,9 @@ tests.
 
 ### Mocking Free Functions
 
-It's possible to use gMock to mock a free function (i.e. a C-style function or a
-static method). You just need to rewrite your code to use an interface (abstract
-class).
+It is not possible to directly mock a free function (i.e. a C-style function or
+a static method). If you need to, you can rewrite your code to use an interface
+(abstract class).
 
 Instead of calling a free function (say, `OpenFile`) directly, introduce an
 interface for it and have a concrete subclass that calls the free function:
@@ -268,7 +268,7 @@ class FileInterface {
 class File : public FileInterface {
  public:
   ...
-  virtual bool Open(const char* path, const char* mode) {
+  bool Open(const char* path, const char* mode) override {
      return OpenFile(path, mode);
   }
 };
@@ -512,9 +512,9 @@ The trick is to redispatch the method in the mock class:
 class ScopedMockLog : public LogSink {
  public:
   ...
-  virtual void send(LogSeverity severity, const char* full_filename,
+  void send(LogSeverity severity, const char* full_filename,
                     const char* base_filename, int line, const tm* tm_time,
-                    const char* message, size_t message_len) {
+                    const char* message, size_t message_len) override {
     // We are only interested in the log severity, full file name, and
     // log message.
     Log(severity, full_filename, std::string(message, message_len));
