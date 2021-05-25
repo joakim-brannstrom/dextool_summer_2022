@@ -364,11 +364,9 @@ Verifies that `val1` is less than, or almost equal to, `val2`. You can replace
 
 ### Asserting Using gMock Matchers
 
-[gMock](gmock_for_dummies.md) comes with
-[a library of matchers](gmock_cheat_sheet.md#MatcherList) for
-validating arguments passed to mock objects. A gMock *matcher* is basically a
-predicate that knows how to describe itself. It can be used in these assertion
-macros:
+gMock comes with a library of *matchers* for validating arguments passed to mock
+objects. A gMock matcher is basically a predicate that knows how to describe
+itself. It can be used in these assertion macros:
 
 
 | Fatal assertion                | Nonfatal assertion             | Verifies              |
@@ -386,14 +384,11 @@ using ::testing::StartsWith;
     EXPECT_THAT(Foo(), StartsWith("Hello"));
 ```
 
-Read this
-[recipe](gmock_cook_book.md#using-matchers-in-googletest-assertions)
-in the gMock Cookbook for more details.
-
-gMock has a rich set of matchers. You can do many things googletest cannot do
-alone with them. For a list of matchers gMock provides, read
-[this](gmock_cook_book.md##using-matchers). It's easy to write
-your [own matchers](gmock_cook_book.md#NewMatchers) too.
+See
+[Using Matchers in googletest Assertions](gmock_cook_book.md#using-matchers-in-googletest-assertions)
+in the gMock Cookbook for more details. For a list of built-in matchers, see the
+[Matchers Reference](reference/matchers.md). You can also write your own
+matchers—see [Writing New Matchers Quickly](gmock_cook_book.md#NewMatchers).
 
 gMock is bundled with googletest, so you don't need to add any build dependency
 in order to take advantage of this. Just include `"gmock/gmock.h"`
@@ -404,9 +399,8 @@ and you're ready to go.
 (Please read the [previous](#asserting-using-gmock-matchers) section first if
 you haven't.)
 
-You can use the gMock
-[string matchers](gmock_cheat_sheet.md#string-matchers) with
-`EXPECT_THAT()` or `ASSERT_THAT()` to do more string comparison tricks
+You can use the gMock [string matchers](reference/matchers.md#string-matchers)
+with `EXPECT_THAT()` or `ASSERT_THAT()` to do more string comparison tricks
 (sub-string, prefix, suffix, regular expression, and etc). For example,
 
 ```c++
@@ -415,17 +409,6 @@ using ::testing::MatchesRegex;
 ...
   ASSERT_THAT(foo_string, HasSubstr("needle"));
   EXPECT_THAT(bar_string, MatchesRegex("\\w*\\d+"));
-```
-
-If the string contains a well-formed HTML or XML document, you can check whether
-its DOM tree matches an
-[XPath expression](http://www.w3.org/TR/xpath/#contents):
-
-```c++
-// Currently still in //template/prototemplate/testing:xpath_matcher
-#include "template/prototemplate/testing/xpath_matcher.h"
-using ::prototemplate::testing::MatchesXPath;
-EXPECT_THAT(html_string, MatchesXPath("//a[text()='click here']"));
 ```
 
 ### Windows HRESULT assertions
@@ -527,6 +510,38 @@ destructor early, possibly leaving your object in a partially-constructed or
 partially-destructed state! You almost certainly want to `abort` or use
 `SetUp`/`TearDown` instead.
 
+## Skipping test execution
+
+Related to the assertions `SUCCEED()` and `FAIL()`, you can prevent further test
+execution at runtime with the `GTEST_SKIP()` macro. This is useful when you need
+to check for preconditions of the system under test during runtime and skip
+tests in a meaningful way.
+
+`GTEST_SKIP()` can be used in individual test cases or in the `SetUp()` methods
+of classes derived from either `::testing::Environment` or `::testing::Test`.
+For example:
+
+```c++
+TEST(SkipTest, DoesSkip) {
+  GTEST_SKIP() << "Skipping single test";
+  EXPECT_EQ(0, 1);  // Won't fail; it won't be executed
+}
+
+class SkipFixture : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    GTEST_SKIP() << "Skipping all tests for this fixture";
+  }
+};
+
+// Tests for SkipFixture won't be executed.
+TEST_F(SkipFixture, SkipsOneTest) {
+  EXPECT_EQ(5, 7);  // Won't fail
+}
+```
+
+As with assertion macros, you can stream a custom message into `GTEST_SKIP()`.
+
 ## Teaching googletest How to Print Your Values
 
 When a test assertion such as `EXPECT_EQ` fails, googletest prints the argument
@@ -625,7 +640,7 @@ exception and avoid the crash. If you want to verify exceptions thrown by your
 code, see [Exception Assertions](#ExceptionAssertions).
 
 If you want to test `EXPECT_*()/ASSERT_*()` failures in your test code, see
-Catching Failures
+["Catching" Failures](#catching-failures).
 
 ### How to Write a Death Test
 
@@ -1511,7 +1526,7 @@ INSTANTIATE_TEST_SUITE_P(
       std::string name = absl::StrCat(
           std::get<0>(info.param) == MyType::MY_FOO ? "Foo" : "Bar",
           std::get<1>(info.param));
-      absl::c_replace_if(name, [](char c) { return !std::isalnum(c); }, '');
+      absl::c_replace_if(name, [](char c) { return !std::isalnum(c); }, '_');
       return name;
     });
 ```
