@@ -12,17 +12,17 @@ exclude = []
 
 # default mutants to test if none is specified by --mutant
 # note that this affects the analyze phase thus the --mutant argument must be one of those specified here
-# available options are: ["all", "ror", "rorp", "lcr", "aor", "uoi", "sdl", "dcr", "lcrb", "aors"]
+# available options are: ["all", "ror", "rorp", "lcr", "aor", "uoi", "sdl", "dcr", "lcrb", "aors", "cr"]
 mutants = ["lcr", "lcrb", "sdl", "uoi", "dcr"]
 
 [analyze]
 
-# glob filter which include/exclude matched files (relative to root) from analysis.
+# glob filter which matched files (relative to root) to be used for static analysis information.
 include = ["*"]
 exclude = ["googlemock/test/*", "googletest/test/*"]
 
 # number of threads to be used for analysis (default is the number of cores).
-# threads = 1
+# threads = 8
 
 # remove files from the database that are no longer found during analysis.
 prune = true
@@ -36,13 +36,21 @@ test_paths = ["googletest/test", "googlemock/test"]
 test_include = ["*/*.cc"]
 # test_exclude = []
 
+# Algorithm to use for generating unique ID's for mutants.
+# strict: IDs are dependent on all content in the file.
+# relaxed: IDs are dependent on the top most scope such as the function body.
+# Using relaxed make allows functions to be moved inside a file without
+# triggering the mutants in the functions to be re-tested
+# available options are: "relaxed", "strict"
+id_algo = "relaxed"
+
 [schema]
 
 # Use scheman to reduce the compile+link time
 use = true
 
 # how to add the schema runtime to the SUT
-# available options are: ["inject", "library"]
+# available options are: "inject", "library"
 # runtime = inject
 
 # Default is to inject the runtime in all roots. A root is a file either provided by --in
@@ -50,6 +58,9 @@ use = true
 # If specified then the coverage and schemata runtime is only injected in these files.
 # paths are relative to root.
 inject_runtime_impl = [["googlemock/src/gmock-all.cc", "cpp"], ["googletest/src/gtest-all.cc", "cpp"]]
+
+# Number of schema mutants to test in parallel (default is the number of cores).
+# parallel_mutants = 8
 
 # minimum number of mutants per schema.
 # min_mutants_per_schema = 3
@@ -67,7 +78,7 @@ check_schemata = true
 use = true
 
 # how to add the coverage runtime to the SUT
-# available options are: ["inject", "library"]
+# available options are: "inject", "library"
 # runtime = inject
 
 # Default is to inject the runtime in all roots. A root is a file either provided by --in
@@ -110,12 +121,16 @@ filter = ["-c", "-o", "-m", "-nodevicelib", "-Waddr-space-convert", "-non-static
 [mutant_test]
 
 # command to build the program **and** test suite.
-build_cmd = "cd build && make -j$(nproc)"
+build_cmd = ["cd build && make -j$(nproc)"]
 
 # at least one of test_cmd_dir (recommended) or test_cmd needs to be specified.
 
 # path(s) to recursively look for test binaries to execute.
 # test_cmd_dir = ["./build/test"]
+
+# how to scan test_cmd_dir
+# available options are: ["recursive", "shallow"]
+# test_cmd_dir_search = "recursive"
 
 # flags to add to all executables found in test_cmd_dir.
 # test_cmd_dir_flag = ["--gtest_filter", "-foo*"]
@@ -139,6 +154,7 @@ test_cmd = [["build/googlemock/gmock_test"], ["build/googlemock/gmock_no_rtti_te
 # analyze_cmd = "analyze.sh"
 
 # built-in analyzer of output from testing frameworks to find failing test cases
+# available options are: ["gtest", "ctest", "makefile", "test_cmd"]
 analyze_using_builtin = ["gtest", "test_cmd"]
 
 # determine in what order mutants are chosen
@@ -188,6 +204,11 @@ test_cmd_checksum = true
 # Unit is Mbyte
 # max_test_cmd_output = 10
 
+# Kill test_cmd's if the total used memory goes above this limit.
+# This avoids the host from running out of memory.
+# Killed tests are tagged as timeout thus they will be re-tested
+max_mem_usage_percentage = 90.0
+
 [report]
 
 # default style to use
@@ -208,3 +229,8 @@ sections = ["summary"]
 # description = "use case 1"
 # pattern = "uc_1.*"
 # see for regex syntax: http://dlang.org/phobos/std_regex.html
+
+[test]
+
+# Path to a JSON file containing metadata about tests.
+# metadata = "test_data.json"
