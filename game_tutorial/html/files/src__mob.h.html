@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta content="text/html;charset=UTF-8" http-equiv="Content-Type" /><style>
+body {font-family: monospace; font-size: 14px; overflow-x: hidden;}
+.stat_tbl      {border-collapse:collapse; border-spacing: 0;border-style: solid;border-width:1px;}
+.stat_tbl    td{border-style: none;}
+.overlap_tbl   {border-collapse:collapse;border-spacing:0;}
+.overlap_tbl td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
+.overlap_tbl th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
+.overlap_tbl .tg-g59y{font-weight:bold;background-color:#ffce93;border-color:#000000;text-align:left;vertical-align:top; cursor: pointer;}
+.overlap_tbl .tg-0lax{text-align:left;vertical-align:top}
+.overlap_tbl .tg-0lax_dark{background-color: lightgrey;text-align:left;vertical-align:top}
+
+.vertical_tbl   {border-collapse:collapse;border-spacing:0;}
+.vertical_tbl:before { content:''; padding-top:110%;/* takes width as reference, + 10% for faking some extra padding */ display:inline-block; vertical-align:middle; }
+.vertical_tbl td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
+.vertical_tbl th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
+.vertical_tbl .tg{ font-weight:bold;background-color:#ffce93;border-color:#000000;text-align:left;vertical-align:top;text-align:center; white-space:nowrap; transform-origin:50% 50%; -webkit-transform: rotate(90deg); -moz-transform: rotate(90deg); -ms-transform: rotate(90deg); -o-transform: rotate(90deg); transform: rotate(90deg); }
+
+.diff_del {background-color: lightpink;}
+.diff_add {background-color: lightgreen;}
+
+.tbl_header {
+    cursor: pointer;
+}
+
+.table-col-sortable {
+  padding: 10px;
+  cursor: pointer;
+  border: 1px solid #fff;
+  background-color: #ddd;
+}
+
+i {
+  border: solid black;
+  border-width: 0 2px 2px 0;
+  display: inline-block;
+  padding: 3px;
+}
+
+.table-col-sortable:hover {
+  background-color: #ccc;
+}
+
+.right {
+  transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+  pointer-events: none;
+}
+
+.left {
+  transform: rotate(135deg);
+  -webkit-transform: rotate(135deg);
+  pointer-events: none;
+}
+
+.up {
+  transform: rotate(-135deg);
+  -webkit-transform: rotate(-135deg);
+  pointer-events: none;
+}
+
+.down {
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+  pointer-events: none;
+}
+
+/* --- tab style --- */
+
+.tab {
+  display: inline-block;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+}
+
+/* Style the buttons that are used to open the tab content */
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+}
+
+/* CSS for popup help box, on hover shows information*/
+.popup-help {
+  font-size: medium;
+  color: #000;
+  display: inline-block;
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  top: -1px;
+  text-align: center;
+  vertical-align: middle;
+  border: 1px solid #000;
+  }
+  
+.popup-help .popup-help-content {
+  visibility: hidden;
+  width: 20em;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  padding: 5px 5px;
+  border-radius: 6px;
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color:  #333;
+  z-index: 10;
+  overflow-x: hidden;
+}
+
+.popup-help .popup-help-content-left {
+  visibility: hidden;
+  width: 20em;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  padding: 5px 5px;
+  border-radius: 6px;
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color:  #333;
+  z-index: 10;
+  overflow-x: hidden;
+}
+  
+.popup-help:hover .popup-help-content {
+  visibility: visible;
+}
+
+.popup-help:hover .popup-help-content-left {
+  visibility: visible;
+}
+/* End information box css */</style><title>src__mob.h</title><style>
+.mutant {display:none; background-color: yellow;}
+.status_alive {background-color: lightpink;}
+.status_noCoverage {background-color: lightpink;}
+.status_skipped {background-color: lightyellow;}
+.status_killed {background-color: lightgreen;}
+.status_killedByCompiler {background-color: #eeeeee;}
+.status_timeout {background-color: lightgreen;}
+.status_memOverload {background-color: lightgreen;}
+.status_unknown {background-color: lightyellow;}
+.status_nomut {background-color: lightblue;}
+
+.mutant_info_text {
+  visibility: hidden;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 5px;
+
+  /* Position the tooltip */
+  display: flex;
+  position: absolute;
+  bottom: 100%;
+  margin-right: 0px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: black;
+  z-index: 10;
+  overflow-x: hidden;
+}
+
+.hover_alive {color: lightpink;}
+.hover_noCoverage {color: lightpink;}
+.hover_skipped {color: lightyellow;}
+.hover_killed {color: lightgreen;}
+.hover_killedByCompiler {color: #eeeeee;}
+.hover_timeout {color: lightgreen;}
+.hover_memOverload {color: lightgreen;}
+.hover_unknown {color: lightyellow;}
+.hover_nomut {color: lightblue;}
+
+.hover_alive:hover .mutant_info_text{
+    visibility: visible;
+}
+.hover_killed:hover .mutant_info_text{
+    visibility: visible;
+}
+.hover_killedByCompiler:hover .mutant_info_text{
+    visibility: visible;
+}
+.hover_timeout:hover .mutant_info_text{
+    visibility: visible;
+}
+.hover_memOverload:hover .mutant_info_text{
+    visibility: visible;
+}
+.hover_unknown:hover .mutant_info_text{
+    visibility: visible;
+}
+.hover_skipped:hover .mutant_info_text{
+    visibility: visible;
+}
+.hover_noCoverage:hover .mutant_info_text{
+    visibility: visible;
+}
+.hover_nomut:hover .mutant_info_text{
+    visibility: visible;
+}
+
+.literal {color: darkred;}
+.keyword {color: blue;}
+.comment {color: grey;}
+.line_nr {color: grey;}
+#mousehover {
+    background: grey;
+    border-radius: 8px;
+    -moz-border-radius: 8px;
+    padding: 5px;
+    display: none;
+    position: absolute;
+    background: #2e3639;
+    color: #fff;
+}
+span.xx_label {
+    font-weight: bold;
+}
+#info_wrapper {
+    position: absolute;
+    width: 99%;
+}
+#info {
+    position: absolute;
+    top: 0;
+    width: 300px;
+    background: grey;
+    border-radius: 0px 0px 0px 10px;
+    -moz-border-radius: 10px;
+    padding: 5px;
+    border: 1px solid;
+    opacity:0.9;
+
+    background: #2e3639;
+}
+#info.fixed {
+    position: fixed;
+}
+#info span {
+    font-size: 80%;
+    color: #fff;
+    font-family: sans-serif;
+}
+#info select {
+    width: 150px;
+}
+
+.loc {
+    display: table-cell;
+    vertical-align: inherit;
+    background: #ffffff;
+    width: 100%;
+}
+.loc_selected {
+    background: #cecece;
+}
+.loc_covered {
+    background: lightblue;
+}
+.loc_noncovered {
+    background: rgb(255, 217, 0);
+}
+.loc_coverage_off {
+    background-color: #ffffff;
+}
+#filter_wrapper {
+    display: block;
+}
+#filter_wrapper table {
+    background: #394347;
+    display: block
+}
+#filter_wrapper table tr{
+    display: block;
+}
+#filter_wrapper table td {
+    background : #445055;
+    display: block;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+.filter_title {
+    color: #ffffff;
+    font-family: sans-serif;
+}
+#filter_wrapper thead, tbody { display: block; }
+
+#filter_wrapper tbody {
+    width: 100%;
+    height: 135px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#testcases thead, tbody { display: block; }
+#testcases tbody {
+    width: 100%;
+    height: 135px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+#testcases {
+    height: 135px;
+    background: #394347;
+    display: block
+}
+#testcases tr{
+    background : #445055;
+    display: block;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    padding: 2px;
+}
+#info_table_wrapper {
+    width: 40%;
+    height: 135px;
+    background: #2e3639;
+}
+#info_table_wrapper.fixed{
+    position: fixed;
+}
+#info_table {
+    background: #2e3639;
+    color: #eeeeee;
+}
+#loc_muts_info {
+    width: 100%;
+}
+#locs {
+    display: block;
+    width: max-content;
+}
+#locs  tr{
+    display: block;
+}
+
+#locs td {
+    display: block;
+}
+
+.show_testcases {
+  float: right;
+}
+</style><script>/**
+Copyright: Copyright (c) 2018, Joakim Brännström. All rights reserved.
+License: MPL-2
+Author: Joakim Brännström (joakim.brannstrom@gmx.com)
+
+This Source Code Form is subject to the terms of the Mozilla Public License,
+v.2.0. If a copy of the MPL was not distributed with this file, You can obtain
+one at http://mozilla.org/MPL/2.0/.
+*/
+
+const LOC_TRAVERSE_LOOP = true;
+const MUT_TRAVERSE_NEXT_LOC = true;
+const LOC_SCROLL_TO_ON_TRAVERSE = true;
+
+var g_displayed_testcases = 10; //Number of testcases displayed in the info line
+var g_show_mutant = true;
+var g_show_coverage = true;
+var g_active_mutid = 0;
+var g_active_locid = null;
+var g_loc_mutids = {};
+var g_filter_kinds = [];
+var g_filter_status = [];
+
+var key_traverse_locs_up = 'ArrowUp';
+var key_traverse_locs_down = 'ArrowDown';
+var key_traverse_muts_up = 'ArrowLeft';
+var key_traverse_muts_down = 'ArrowRight';
+var key_toggle_show_mutant = 'Numpad0';
+var key_toggle_show_coverage = 'Numpad1';
+
+/**
+ * Initializes event listeners, data and intial state
+ */
+function init() {
+    var current_mutant_selector = document.getElementById('current_mutant');
+    current_mutant_selector.addEventListener('change',
+        function (e) { current_mutant_onchange(e); });
+    num_testcases.addEventListener('change',
+        function (e) { on_num_testcases_change(e); });
+    window.addEventListener('resize',
+        on_window_resize);
+    window.addEventListener('keydown',
+        function (e) { on_keyboard_input(e); });
+    document.getElementById("info_table_wrapper").addEventListener('wheel',
+        function (e) { on_loc_wheel(e); });
+    g_displayed_testcases = num_testcases.value;
+    num_testcases.max = MAX_NUM_TESTCASES;
+    init_legend();
+    on_window_resize();
+    var locs_table = document.getElementById("locs");
+    var locs = document.getElementsByClassName('loc');
+    for (var i = 0; i < locs.length; i++) {
+        locs[i].addEventListener('click',
+            function (e) { on_loc_click(e); });
+
+        // Get all mutant ids in the loc.
+        muts = locs[i].getElementsByClassName('mutant');
+        g_loc_mutids[locs[i].id] = [];
+        for (var j = 0; j < muts.length; j++) {
+            g_loc_mutids[locs[i].id].push(muts[j].id);
+        }
+    }
+    for (const [key, value] of Object.entries(g_loc_mutids)) {
+        g_loc_mutids[key] = priority_highlight_sort(value);
+    }
+    select_loc(locs[0].id);
+    //Select loc or mutant by hash
+    var mutid = '-1';
+    var hash = window.location.hash.substring(1);
+    if (hash != "" && document.getElementById(hash)) {
+        if (document.getElementById(hash).classList.contains('mutant')) {
+            mutid = hash;
+            set_active_mutant(mutid);
+            highlight_mutant(mutid);
+            select_loc(get_closest_loc(document.getElementById(mutid)).id, true);
+        } else if (document.getElementById(hash).classList.contains('loc')) {
+            select_loc(hash, true);
+        }
+    }
+
+    click_show_legend();
+    click_show_mutant();
+    document.body.focus();
+}
+
+function priority_highlight_sort(mutids_array) {
+    mutids_array.sort(highlight_compare);
+    return mutids_array;
+}
+
+function highlight_compare(a, b) {
+    if (g_muts_data[a].size > g_muts_data[b].size) return 1;
+    if (g_muts_data[a].size < g_muts_data[b].size) return -1;
+    return 0;
+}
+/**
+ * Toggles whether to show the legend or not
+ */
+function click_show_legend() {
+    var show_legend = document.getElementById("show_legend").checked;
+    var legend = document.getElementById("legend_box");
+    if (show_legend) {
+        legend.style.display = "inline";
+    } else {
+        legend.style.display = "none";
+    }
+}
+function on_num_testcases_change(e) {
+    num_testcases = e.target;
+    if (num_testcases.value != g_displayed_testcases) {
+        g_displayed_testcases = num_testcases.value;
+        set_info_line(g_active_mutid);
+    }
+}
+/**
+ * Manages all keyboard bindings
+ * @param {event} e the captured keyboard event
+ */
+function on_keyboard_input(e) {
+    switch (e.code) {
+        case key_traverse_locs_down:
+            e.preventDefault();
+            traverse_locs(1);
+            break;
+        case key_traverse_locs_up:
+            e.preventDefault();
+            traverse_locs(-1);
+            break;
+        case key_traverse_muts_down:
+            traverse_mutants(1);
+            break;
+        case key_traverse_muts_up:
+            traverse_mutants(-1);
+            break;
+        case key_toggle_show_mutant:
+            document.getElementById("show_mutant").checked = !document.getElementById("show_mutant").checked;
+            click_show_mutant();
+            break;
+        case key_toggle_show_coverage:
+            document.getElementById("show_coverage").checked = !document.getElementById("show_coverage").checked;
+            click_show_coverage();
+            break;
+    }
+    return;
+}
+/**
+ * Traverses mutants if a scroll event is captured in the selected loc
+ * @param {event} e the captured scrool event
+ */
+function on_loc_wheel(e) {
+    e.preventDefault();
+    traverse_mutants(e.deltaY);
+    return;
+}
+/**
+ * Selects a loc when any element within it captures a click event.
+ * @param {event} e the captured click event
+ */
+function on_loc_click(e) {
+    if (!e.target.classList.contains("loc") && e.target.onclick != null)
+        return;
+    var loc = get_closest_loc(e.target);
+    if (loc) {
+        select_loc(loc.id);
+    } else {
+        select_loc(g_active_locid);
+    }
+    return;
+}
+/**
+ * Selects the loc with the given id.
+ * @param {id} loc_id the id of the loc to select
+ * @param {boolean} pure false if active mutant and mutation options are to be cleared.
+ */
+function select_loc(loc_id, pure) {
+    locs = document.getElementsByClassName('loc');
+    if (g_active_locid) {
+        document.getElementById(g_active_locid).classList.toggle("loc_selected");
+        remove_info_line();
+    }
+    loc = document.getElementById(loc_id);
+    g_active_locid = loc.id;
+    loc.classList.toggle("loc_selected");
+
+    if (!pure) {
+        set_active_mutant(-1);
+        deactivate_mutants();
+        clear_mutation_options();
+    }
+    show_info_line();
+    set_mutation_options(g_active_locid);
+}
+
+function show_info_line() {
+    if (!document.getElementById(g_active_locid).getElementsByClassName("mutant").length)
+        return;
+
+    var info_table_wrapper = document.getElementById("info_table_wrapper");
+    info_table_wrapper.innerHTML = `
+    <table id='info_table'>
+        <tr id="loc_muts_info"></tr>
+        <tr>
+            <td><table id="testcases" ></table></td>
+        </tr>
+    </table>
+    `;
+    set_info_line(g_active_mutid);
+}
+
+function remove_info_line() {
+    info_table = document.getElementById("info_table");
+    if (!info_table)
+        return;
+    document.getElementById("info_table_wrapper").removeChild(info_table);
+}
+function set_info_line(mutid) {
+    if (!document.getElementById(g_active_locid).getElementsByClassName("mutant").length)
+        return;
+
+    var testcases = document.getElementById("testcases");
+    document.getElementById("loc_muts_info").innerHTML = make_td(make_kind_status_info(g_active_locid, mutid));
+    var tcs = g_muts_data[mutid].testCases
+    if (!tcs) {
+        while (testcases.rows.length > 0) {
+            testcases.deleteRow(-1);
+        }
+        return;
+    }
+    while (testcases.rows.length > Math.min(g_displayed_testcases, tcs.length)) {
+        testcases.deleteRow(-1);
+    }
+    for (var i = 0; i < Math.min(g_displayed_testcases, tcs.length); i++) {
+        var id = "tc" + parseInt(i + 1);
+        var row = document.getElementById(id)
+        if (!row) {
+            row = testcases.insertRow(i);
+            row.id = id;
+        }
+        var test_case = tcs[i];
+        if (test_case) {
+            row.innerHTML = make_td(test_case + ": " + g_testcases_kills[test_case]);
+        }
+    }
+}
+function make_td(html, id) {
+    if (!id)
+        return "<td>" + html + "</td>";
+    return "<td id='" + id + "'>" + html + "</td>";
+}
+function make_kind_status_info(locid, curr_mutid) {
+    if (curr_mutid == -1) {
+        return "<span>No active mutant</span>";
+    }
+    var mutids = g_loc_mutids[locid];
+    var html = "";
+    for (var i = 0; i < mutids.length; i++) {
+        var mutid = mutids[i];
+        var mut = g_muts_data[mutid];
+        if (!g_filter_kinds.includes(mut.kindGroup) &&
+            !g_filter_status.includes(mut.status)) {
+            var mut_kind = g_mut_kind_map[mut.kind];
+            var mut_status = g_mut_st_map[mut.status];
+
+            if (mut.meta == "nomut"){
+                mut_status = "nomut";
+            }
+
+            var mutant_info_text = "";
+            mutant_info_text = g_mut_description[g_mut_kindGroup_map[mut.kindGroup]];
+
+            if (mutids[i]==curr_mutid)
+                html+=`<span class="hover_`+mut_status+`"><b><u>`+mut_kind+`</b></u> <span class="mutant_info_text">`+ mutant_info_text +`</span></span>`;
+            else
+                html+=`<span class="hover_`+mut_status+`">`+mut_kind+` <span class="mutant_info_text">`+mutant_info_text+`</span></span>`;
+        }
+    }
+    return html;
+}
+/**
+ * Adds the mutants on the loc for the given id
+ * @param {id} loc_id id of the loc whose mutants to add
+ */
+function set_mutation_options(loc_id) {
+    var mutids = g_loc_mutids[loc_id];
+    var current_mutant_selector = document.getElementById('current_mutant');
+
+    current_mutant_selector.selectedIndex = 0;
+    for (var i = 0; i < mutids.length; i++) {
+        var mutid = mutids[i];
+        var mut = g_muts_data[mutid];
+        if (!g_filter_kinds.includes(mut.kindGroup) &&
+            !g_filter_status.includes(mut.status)) {
+            var s = document.createElement('OPTION');
+            s.value = mutid;
+            s.text = mut.mutText;
+            current_mutant_selector.add(s);
+            if (g_active_mutid === s.value)
+                current_mutant_selector.selectedIndex = i + 1;
+        }
+    }
+}
+/**
+ * Changes the active mutant on a given line
+ * @param {*} direction positive for next, negative for previous
+ */
+function traverse_mutants(direction) {
+    current_mutant_selector = document.getElementById('current_mutant');
+    selected = current_mutant_selector.selectedIndex;
+    if (direction > 0) {
+        if (selected + 1 < current_mutant_selector.options.length)
+            current_mutant_selector.selectedIndex += 1;
+        else if (MUT_TRAVERSE_NEXT_LOC) {
+            traverse_locs(1);
+            if (current_mutant_selector.options.length > 1) {
+                current_mutant_selector.selectedIndex = 1;
+            }
+        }
+    } else if (direction < 0) {
+        if (selected - 1 > 0)
+            current_mutant_selector.selectedIndex -= 1;
+        else if (MUT_TRAVERSE_NEXT_LOC) {
+            traverse_locs(-1);
+            current_mutant_selector.selectedIndex = current_mutant_selector.options.length - 1;
+        }
+    }
+    var mutid = current_mutant_selector.value;
+    set_active_mutant(mutid);
+    highlight_mutant(mutid);
+    if (mutid != -1)
+        scroll_to(mutid);
+    else
+        scroll_to(g_active_locid);
+    set_info_line(mutid);
+}
+/**
+ * Changes the active line
+ * @param {*} direction positive for next, negative for previous
+ */
+function traverse_locs(direction) {
+    locs = document.getElementsByClassName('loc');
+    var old_active_locid = g_active_locid;
+    for (var i = 0; i < locs.length; i++) {
+        if (locs[i].id === g_active_locid) {
+            if (direction > 0) {
+                if (i + 1 < locs.length)
+                    select_loc(locs[i + 1].id);
+                else if (LOC_TRAVERSE_LOOP)
+                    select_loc(locs[0].id);
+            } else if (direction < 0) {
+                if (i - 1 >= 0)
+                    select_loc(locs[i - 1].id);
+                else if (LOC_TRAVERSE_LOOP)
+                    select_loc(locs[locs.length - 1].id);
+            }
+            break;
+        }
+    }
+    if (old_active_locid !== g_active_locid && LOC_SCROLL_TO_ON_TRAVERSE) {
+        scroll_to(g_active_locid, true);
+    }
+    return;
+}
+/**
+ * Gets the closest loc of an element
+ * @param {*} target The target element
+ */
+function get_closest_loc(target) {
+    if (!target)
+        return document.getElementById(g_active_locid);
+    if (target.className === "loc")
+        return target;
+    else
+        return target.closest(".loc");
+}
+/**
+ * Moves the info box when the client window is resized
+ */
+function on_window_resize() {
+    var info_box = document.getElementById('info');
+    var top = info_box.offsetTop - info_box.style.marginTop;
+    var left = window.innerWidth - info_box.clientWidth - 30;
+    info_box.style.left = left + "px";
+    info_box.style.top = top + "px";
+
+    var info_table_wrapper = document.getElementById('info_table_wrapper');
+    var line = document.getElementById('locs');
+    var width;
+    if (line.clientWidth * 2 < window.innerWidth) {
+        width = line.clientWidth;
+    }
+    else if (window.innerWidth < 1350) {
+        width = line.clientWidth / 2;
+    }
+    else {
+        width = window.innerWidth - line.clientWidth - 30;
+    }
+    info_table_wrapper.style.width = width + "px";
+    var top = window.innerHeight - info_table_wrapper.clientHeight;
+    var left = window.innerWidth - info_table_wrapper.clientWidth;
+    info_table_wrapper.style.left = left + "px";
+    info_table_wrapper.style.top = top + "px";
+}
+/**
+ * Updates the selected mutant when using the selector
+ * @param {event} e captured change event
+ */
+function current_mutant_onchange(e) {
+    var current_mutant_selector = document.getElementById('current_mutant');
+    var id = current_mutant_selector.value;
+
+    current_mutant_selector.focus();
+    current_mutant_selector.blur();
+    document.body.focus();
+    if (id == -1) {
+        location.hash = "#";
+        set_active_mutant(id);
+        deactivate_mutants();
+        set_info_line(id);
+        return;
+    }
+
+    set_active_mutant(id);
+    highlight_mutant(id);
+    set_info_line(id);
+}
+/**
+ * Removes all options (except the first) from the selector.
+ */
+function clear_mutation_options() {
+    current_mutant_selector = document.getElementById('current_mutant');
+    while (current_mutant_selector.options.length != 1) {
+        current_mutant_selector.options[1] = null;
+    }
+}
+/**
+ * Updates the ui to display the mutant with the given id as selected.
+ */
+function ui_set_mut(id) {
+    loc_id = get_closest_loc(document.getElementById(id)).id
+    if (loc_id != g_active_locid) {
+        select_loc(loc_id);
+    }
+    mutids = g_loc_mutids[loc_id];
+    set_active_mutant(id);
+    highlight_mutant(id);
+    scroll_to(id, false);
+    set_info_line(id);
+    var current_mutant_selector = document.getElementById('current_mutant');
+    for (var i = 0; i < mutids.length; i++) {
+        if (id == mutids[i]) {
+            current_mutant_selector.selectedIndex = i + 1;
+            break;
+        }
+    }
+}
+/**
+ * Sets the active mutant id as the given id.
+ * @param {id} mutid id of mutant to set as activate
+ */
+function set_active_mutant(mutid) {
+    if (mutid) {
+        g_active_mutid = mutid;
+    }
+}
+/**
+ * Toggles whether to show mutants or not.
+ */
+function click_show_mutant() {
+    g_show_mutant = document.getElementById("show_mutant").checked;
+    if (g_show_mutant) {
+        highlight_mutant(g_active_mutid);
+    } else {
+        deactivate_mutants();
+    }
+}
+/**
+ * Toggles the visibility of color for covered and non-covered lines
+ */
+function click_show_coverage() {
+    coverageClasses = document.querySelectorAll('.loc_covered');
+    coverageClasses.forEach(element => {
+        element.classList.toggle('loc_coverage_off');
+    })
+    nonCoverageClasses = document.querySelectorAll('.loc_noncovered');
+    nonCoverageClasses.forEach(element => {
+        element.classList.toggle('loc_coverage_off');
+    })
+    legendCoverageClasses = document.querySelectorAll('.legend_coverage');
+    legendCoverageClasses.forEach(element => {
+        if (element.style.display == 'inline')
+            element.style.display = 'none';
+        else
+            element.style.display = 'inline';
+    })
+}
+/**
+ * Activates the mutant of the given id.
+ * @param {id} mutid id of the mutant to activate
+ */
+function activate_mutant(mutid) {
+    if (!g_show_mutant) {
+        return;
+    }
+    mut = document.getElementById(mutid);
+    if (mut) {
+        clss = document.getElementsByClassName("mutid" + mutid);
+        if (clss) {
+            for (var i = 0; i < clss.length; i++) {
+                clss[i].style.display = 'none';
+            }
+        }
+        if (mut)
+        mut.style.display = 'inline';
+        if (document.getElementById(mutid).classList.contains("long_mutant-" + mutid)) {
+            var longMutantSpans = document.getElementsByClassName("mutid" + mutid);
+            longMutantSpans.item(0).innerText = "/*" + longMutantSpans.item(0).innerText;
+            longMutantSpans.item(longMutantSpans.length-1).innerText = longMutantSpans.item(longMutantSpans.length-1).innerText + "*/";
+
+            for (var i = 0; i < longMutantSpans.length ; i++) {
+                longMutantSpans[i].style.display = 'inline';
+                longMutantSpans[i].style.backgroundColor = 'yellow';
+                longMutantSpans[i].classList.add("active_long_mutant");
+            }
+        }
+    }
+}
+/**
+ * Deactivates all mutants
+ */
+function deactivate_mutants() {
+    clear_current_mutant_info();
+    var orgs = document.querySelectorAll(".original");
+    var muts = document.querySelectorAll(".mutant");
+    var longMutants = document.querySelectorAll(".active_long_mutant");
+    for (var i = 0; i < orgs.length; i++) {
+        orgs[i].style.display = "inline";
+    }
+    for (i = 0; i < muts.length; i++) {
+        muts[i].style.display = "none";
+    }
+    if (longMutants.length != 0) {
+        longMutants[0].innerText = longMutants[0].innerText.slice(2, longMutants[0].innerText.length);
+        longMutants[longMutants.length-1].innerText = longMutants[longMutants.length-1].innerText.slice(0, -2);
+
+    }
+    longMutants.forEach(elem => {
+        elem.style.backgroundColor = '';
+        elem.classList.remove("active_long_mutant");
+    });
+}
+/**
+ * Highlights the mutant of the given id
+ * @param {id} mutid id of the mutant to highlight
+ */
+function highlight_mutant(mutid) {
+    deactivate_mutants();
+    mut = document.getElementById(mutid);
+    if (!mut)
+        return;
+    if (mut.classList.contains("mutant")) {
+        activate_mutant(mutid);
+        set_current_mutant_info(mutid);
+    }
+}
+function click_filter_kind(kind) {
+    var checkbox = document.getElementById(g_mut_kindGroup_map[kind]);
+    if (checkbox.checked) {
+        for (var i = 0; i < g_filter_kinds.length; i++) {
+            if (g_filter_kinds[i] === kind) {
+
+                g_filter_kinds.splice(i, 1);
+            }
+        }
+    }
+    else {
+        g_filter_kinds.push(kind);
+    }
+    set_active_mutant(-1);
+    deactivate_mutants();
+    clear_mutation_options();
+    set_mutation_options(g_active_locid);
+    set_info_line(g_active_mutid);
+}
+function click_filter_status(status) {
+    var checkbox = document.getElementById(g_mut_st_map[status]);
+    if (checkbox.checked) {
+        for (var i = 0; i < g_filter_status.length; i++) {
+            if (g_filter_status[i] === status) {
+
+                g_filter_status.splice(i, 1);
+            }
+        }
+    }
+    else {
+        g_filter_status.push(status);
+    }
+    set_active_mutant(-1);
+    deactivate_mutants();
+    clear_mutation_options();
+    set_mutation_options(g_active_locid);
+    set_info_line(g_active_mutid);
+}
+function set_current_mutant_info(mutid) {
+    mut = g_muts_data[mutid];
+    document.getElementById("current_mutant_status").innerText = g_mut_st_map[mut.status];
+    document.getElementById("current_mutant_metadata").innerText = mut.meta;
+    document.getElementById("current_mutant_id").innerText = mutid;
+    document.getElementById("current_mutant_original").innerText = mut.orgText;
+}
+/**
+ * Clears the info box of mutant related text.
+ */
+function clear_current_mutant_info() {
+    document.getElementById("current_mutant_status").innerText = "";
+    document.getElementById("current_mutant_metadata").innerText = "";
+    document.getElementById("current_mutant_id").innerText = "";
+    document.getElementById("current_mutant_original").innerText = "";
+}
+/**
+ * Displays info about all mutants in the same place as the mutant being hovered.
+ * @param {event} evt the captured event
+ * @param {innerHTML} html The inner html to be displayed.
+ */
+function fly(evt, html) {
+    var el = document.getElementById("mousehover");
+    if (evt.type == "mouseenter") {
+        el.style.display = "inline";
+    } else {
+        el.style.display = "none";
+    }
+
+    el.innerHTML = html;
+    el.style.left = (evt.pageX + 30) + 'px';
+    el.style.top = (evt.pageY + 30) + 'px';
+}
+/**
+ * Scrolls to the element of the given anchor
+ * @param {id} anchor the id of the element to scroll to
+ * @param {boolean} center whether to centre the page on the anchor
+ */
+function scroll_to(anchor, center) {
+    var curr_pos = window.pageYOffset;
+    if (center) {
+        var newpos = document.getElementById(anchor).offsetTop - window.innerHeight / 2;
+        if (newpos > 0) {
+            window.scrollTo(0, newpos);
+        }
+        else {
+            window.scrollTo(0, 0);
+        }
+    } else {
+        window.scrollTo(0, curr_pos);
+    }
+}
+// Move most of this to html at some point
+function init_legend() {
+    document.getElementById("legend1_action").innerHTML = "Next line: ";
+    document.getElementById("legend2_action").innerHTML = "Prev line: ";
+    document.getElementById("legend3_action").innerHTML = "Next mutant: ";
+    document.getElementById("legend4_action").innerHTML = "Prev mutant: ";
+    document.getElementById("legend5_action").innerHTML = "Toggle show: ";
+    document.getElementById("legend6_action").innerHTML = "Toggle coverage: ";
+    document.getElementById("legend1_key").innerHTML = key_traverse_locs_down;
+    document.getElementById("legend2_key").innerHTML = key_traverse_locs_up;
+    document.getElementById("legend3_key").innerHTML = key_traverse_muts_down;
+    document.getElementById("legend4_key").innerHTML = key_traverse_muts_up;
+    document.getElementById("legend5_key").innerHTML = key_toggle_show_mutant;
+    document.getElementById("legend6_key").innerHTML = key_toggle_show_coverage;
+}
+
+function hide_testcases() {
+    var num = document.getElementById("num_testcases");
+
+    if (num.style.display === "none") {
+        num.style.display = "block";
+    } else {
+        num.style.display = "none";
+    }
+}
+</script></head>
+<body onload="javascript:init();"><div id="mousehover"></div>
+<div id="info_wrapper">
+  <div class="fixed" id="info">
+    <table>
+      <tr>
+        <td colspan="2"><span class="xx_label">Id: </span> <span id="current_mutant_id"></span></td>
+        <td><a href="../index.html" style="color: white">To index</a></td>
+      </tr>
+      <tr>
+        <td><span class="xx_label">Original: </span></td>
+        <td><span id="current_mutant_original"></span></td>
+        <td><input id="show_legend" onclick="click_show_legend(this)" type="checkbox" /><span class="xx_label" id="legend">Legend</span></td>
+            
+      </tr>
+      <tr>
+        <td><span class="xx_label">Status: </span></td>
+        <td><span id="current_mutant_status"></span></td>
+        <td><span id="current_mutant_metadata"></span></td>
+      </tr>
+      <tr>
+        <td><span class="xx_label">Mutant: </span></td>
+        <td>
+          <select id="current_mutant">
+            <option selected="selected" value="-1">Original</option>
+          </select>
+        </td>
+        <td><input checked="checked" id="show_mutant" onclick="click_show_mutant(this)" type="checkbox" /><span class="xx_label">Show mutant</span></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td></td>
+        <td><input checked="checked" id="show_coverage" onclick="click_show_coverage(this)" type="checkbox" /><span class="xx_label">Show coverage</span></td>
+      </tr>
+    </table>
+    
+    <div id="filter_wrapper">
+      <p class="filter_title">Testcases to display<button class="show_testcases" onclick="hide_testcases()" type="button">Show testcases</button></p>
+      <input id="num_testcases" max="10" min="0" step="1" type="number" value="5" />
+    </div>
+    
+    <table id="legend_box" style="display: none;">
+      <tr id="legend1">
+        <td><span class="xx_label" id="legend1_action"></span></td>
+        <td><span id="legend1_key"></span></td>
+      </tr>
+      <tr id="legend2">
+        <td><span class="xx_label" id="legend2_action"></span></td>
+        <td><span id="legend2_key"></span></td>
+      </tr>
+      <tr id="legend3">
+        <td><span class="xx_label" id="legend3_action"></span></td>
+        <td><span id="legend3_key"></span></td>
+      </tr>
+      <tr id="legend4">
+        <td><span class="xx_label" id="legend4_action"></span></td>
+        <td><span id="legend4_key"></span></td>
+      </tr>
+      <tr id="legend5">
+        <td><span class="xx_label" id="legend5_action"></span></td>
+        <td><span id="legend5_key"></span></td>
+      </tr>
+      <tr id="legend6">
+        <td><span class="xx_label" id="legend6_action"></span></td>
+        <td><span id="legend6_key"></span></td>
+      </tr>
+      <tr class="legend_coverage" id="legend7" style="display:inline;">
+        <td><span class="xx_label" id="legend7_example" style="background: lightblue; color: grey;">XX:</span></td>
+        <td><span id="legend7_explanation">Line is covered by tests</span></td>
+      </tr>
+      <tr class="legend_coverage" id="legend8" style="display:inline;">
+        <td><span class="xx_label" id="legend8_example" style="background: rgb(255, 217, 0); color: grey;">XX:</span></td>
+        <td><span id="legend8_explanation">Line is not covered by tests</span></td>
+      </tr>
+    </table>
+  </div>
+</div>
+<div class="fixed" id="info_table_wrapper">
+
+</div>
+<table cellpadding="0" id="locs"><tr><td class="loc" id="loc-1"><span class="line_nr">1:</span><div style="display: inline;"><span class="original comment">//</span></div></td></tr><tr><td class="loc" id="loc-2"><span class="line_nr">2:</span><div style="display: inline;"><span class="original comment">//  mob.h</span></div></td></tr>
+<tr><td class="loc" id="loc-3"><span class="line_nr">3:</span><div style="display: inline;"><span class="original comment">//  minirl</span></div></td></tr>
+<tr><td class="loc" id="loc-4"><span class="line_nr">4:</span><div style="display: inline;"><span class="original comment">//</span></div></td></tr>
+<tr><td class="loc" id="loc-5"><span class="line_nr">5:</span><div style="display: inline;"><span class="original comment">//  Created by Benjamin Porter on 1/1/18.</span></div></td></tr>
+<tr><td class="loc" id="loc-6"><span class="line_nr">6:</span><div style="display: inline;"><span class="original comment">//  Copyright &#169; 2018 Benjamin Porter. All rights reserved.</span></div></td></tr>
+<tr><td class="loc" id="loc-7"><span class="line_nr">7:</span><div style="display: inline;"><span class="original comment">//</span></div></td></tr>
+<tr><td class="loc" id="loc-8"><span class="line_nr">8:</span></td></tr>
+<tr><td class="loc" id="loc-9"><span class="line_nr">9:</span><div style="display: inline;"><span class="original punctuation">#</span></div><div style="display: inline;"><span class="original identifier">ifndef</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">mob_h</span></div></td></tr>
+<tr><td class="loc" id="loc-10"><span class="line_nr">10:</span><div style="display: inline;"><span class="original punctuation">#</span></div><div style="display: inline;"><span class="original identifier">define</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">mob_h</span></div></td></tr>
+<tr><td class="loc" id="loc-11"><span class="line_nr">11:</span></td></tr>
+<tr><td class="loc" id="loc-12"><span class="line_nr">12:</span><div style="display: inline;"><span class="original punctuation">#</span></div><div style="display: inline;"><span class="original identifier">include</span></div>&nbsp;<div style="display: inline;"><span class="original literal">&quot;entity.h&quot;</span></div></td></tr>
+<tr><td class="loc" id="loc-13"><span class="line_nr">13:</span><div style="display: inline;"><span class="original punctuation">#</span></div><div style="display: inline;"><span class="original identifier">include</span></div>&nbsp;<div style="display: inline;"><span class="original literal">&quot;util.h&quot;</span></div></td></tr>
+<tr><td class="loc" id="loc-14"><span class="line_nr">14:</span></td></tr>
+<tr><td class="loc" id="loc-15"><span class="line_nr">15:</span><div style="display: inline;"><span class="original punctuation">#</span></div><div style="display: inline;"><span class="original identifier">include</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">&lt;</span></div><div style="display: inline;"><span class="original identifier">cstdint</span></div><div style="display: inline;"><span class="original punctuation">&gt;</span></div></td></tr>
+<tr><td class="loc" id="loc-16"><span class="line_nr">16:</span><div style="display: inline;"><span class="original punctuation">#</span></div><div style="display: inline;"><span class="original identifier">include</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">&lt;</span></div><div style="display: inline;"><span class="original identifier">string</span></div><div style="display: inline;"><span class="original punctuation">&gt;</span></div></td></tr>
+<tr><td class="loc" id="loc-17"><span class="line_nr">17:</span></td></tr>
+<tr><td class="loc" id="loc-18"><span class="line_nr">18:</span><div style="display: inline;"><span class="original keyword">enum</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">class</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">MobCategory</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">{</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">Unknown</span></div><div style="display: inline;"><span class="original punctuation">,</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">Rabbit</span></div><div style="display: inline;"><span class="original punctuation">,</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">Snake</span></div><div style="display: inline;"><span class="original punctuation">,</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">Orc</span></div><div style="display: inline;"><span class="original punctuation">,</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">Player</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">}</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-19"><span class="line_nr">19:</span></td></tr>
+<tr><td class="loc" id="loc-20"><span class="line_nr">20:</span><div style="display: inline;"><span class="original keyword">enum</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">class</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">MobType</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">{</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">Unknown</span></div><div style="display: inline;"><span class="original punctuation">,</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">Rabbit</span></div><div style="display: inline;"><span class="original punctuation">,</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">RabbitWere</span></div><div style="display: inline;"><span class="original punctuation">,</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">Snake</span></div><div style="display: inline;"><span class="original punctuation">,</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">OrcWeak</span></div><div style="display: inline;"><span class="original punctuation">,</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">OrcStrong</span></div><div style="display: inline;"><span class="original punctuation">,</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">Player</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">}</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-21"><span class="line_nr">21:</span></td></tr>
+<tr><td class="loc" id="loc-22"><span class="line_nr">22:</span><div style="display: inline;"><span class="original keyword">inline</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">std</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original identifier">string</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">to_string</span></div><div style="display: inline;"><span class="original punctuation">(</span></div><div style="display: inline;"><span class="original identifier">MobType</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">type</span></div><div style="display: inline;"><span class="original punctuation">)</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">{</span></div></td></tr>
+<tr><td class="loc" id="loc-23"><span class="line_nr loc_noncovered">23:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original identifier">using</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">namespace</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">std</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original identifier">string_literals</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-24"><span class="line_nr loc_noncovered">24:</span></td></tr>
+<tr><td class="loc" id="loc-25"><span class="line_nr loc_noncovered">25:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">switch</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">(</span></div><div style="display: inline;"><span class="original identifier">type</span></div><div style="display: inline;"><span class="original punctuation">)</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">{</span></div></td></tr>
+<tr><td class="loc" id="loc-26"><span class="line_nr loc_noncovered">26:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">default</span></div><div style="display: inline;"><span class="original punctuation">:</span></div></td></tr>
+<tr><td class="loc" id="loc-27"><span class="line_nr loc_noncovered">27:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">case</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">MobType</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original identifier">Unknown</span></div><div style="display: inline;"><span class="original punctuation">:</span></div></td></tr>
+<tr><td class="loc" id="loc-28"><span class="line_nr loc_noncovered">28:</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">return</span></div>&nbsp;<div style="display: inline;"><span class="original literal">&quot;MobType::Unknown&quot;</span></div><div style="display: inline;"><span class="original identifier">s</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-29"><span class="line_nr loc_noncovered">29:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">case</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">MobType</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original identifier">Rabbit</span></div><div style="display: inline;"><span class="original punctuation">:</span></div></td></tr>
+<tr><td class="loc" id="loc-30"><span class="line_nr loc_noncovered">30:</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">return</span></div>&nbsp;<div style="display: inline;"><span class="original literal">&quot;MobType::Rabbit&quot;</span></div><div style="display: inline;"><span class="original identifier">s</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-31"><span class="line_nr loc_noncovered">31:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">case</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">MobType</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original identifier">RabbitWere</span></div><div style="display: inline;"><span class="original punctuation">:</span></div></td></tr>
+<tr><td class="loc" id="loc-32"><span class="line_nr loc_noncovered">32:</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">return</span></div>&nbsp;<div style="display: inline;"><span class="original literal">&quot;MobType::RabbitWere&quot;</span></div><div style="display: inline;"><span class="original identifier">s</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-33"><span class="line_nr loc_noncovered">33:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">case</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">MobType</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original identifier">Snake</span></div><div style="display: inline;"><span class="original punctuation">:</span></div></td></tr>
+<tr><td class="loc" id="loc-34"><span class="line_nr loc_noncovered">34:</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">return</span></div>&nbsp;<div style="display: inline;"><span class="original literal">&quot;MobType::Snake&quot;</span></div><div style="display: inline;"><span class="original identifier">s</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-35"><span class="line_nr loc_noncovered">35:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">case</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">MobType</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original identifier">OrcWeak</span></div><div style="display: inline;"><span class="original punctuation">:</span></div></td></tr>
+<tr><td class="loc" id="loc-36"><span class="line_nr loc_noncovered">36:</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">return</span></div>&nbsp;<div style="display: inline;"><span class="original literal">&quot;MobType::OrcWeak&quot;</span></div><div style="display: inline;"><span class="original identifier">s</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-37"><span class="line_nr loc_noncovered">37:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">case</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">MobType</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original identifier">OrcStrong</span></div><div style="display: inline;"><span class="original punctuation">:</span></div></td></tr>
+<tr><td class="loc" id="loc-38"><span class="line_nr loc_noncovered">38:</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">return</span></div>&nbsp;<div style="display: inline;"><span class="original literal">&quot;MobType::OrcStrong&quot;</span></div><div style="display: inline;"><span class="original identifier">s</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-39"><span class="line_nr loc_noncovered">39:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">case</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">MobType</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original identifier">Player</span></div><div style="display: inline;"><span class="original punctuation">:</span></div></td></tr>
+<tr><td class="loc" id="loc-40"><span class="line_nr loc_noncovered">40:</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">return</span></div>&nbsp;<div style="display: inline;"><span class="original literal">&quot;MobType::Player&quot;</span></div><div style="display: inline;"><span class="original identifier">s</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-41"><span class="line_nr loc_noncovered">41:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original punctuation">}</span></div></td></tr>
+<tr><td class="loc" id="loc-42"><span class="line_nr loc_noncovered">42:</span><div style="display: inline;"><span class="original punctuation">}</span></div></td></tr>
+<tr><td class="loc" id="loc-43"><span class="line_nr">43:</span></td></tr>
+<tr><td class="loc" id="loc-44"><span class="line_nr">44:</span><div style="display: inline;"><span class="original keyword">struct</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">MobInfo</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">{</span></div></td></tr>
+<tr><td class="loc" id="loc-45"><span class="line_nr">45:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original identifier">MobCategory</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">category</span></div><div style="display: inline;"><span class="original punctuation">{</span></div><div style="display: inline;"><span class="original identifier">MobCategory</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original identifier">Unknown</span></div><div style="display: inline;"><span class="original punctuation">}</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-46"><span class="line_nr">46:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original identifier">std</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original punctuation">:</span></div><div style="display: inline;"><span class="original identifier">string</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">name</span></div><div style="display: inline;"><span class="original punctuation">{</span></div><div style="display: inline;"><span class="original punctuation">}</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-47"><span class="line_nr">47:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original identifier">int32_t</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">health</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">=</span></div>&nbsp;<div style="display: inline;"><span class="original literal">0</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-48"><span class="line_nr">48:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original identifier">bool</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">attacks</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">=</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">false</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-49"><span class="line_nr">49:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original identifier">int32_t</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">strength</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">=</span></div>&nbsp;<div style="display: inline;"><span class="original literal">0</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-50"><span class="line_nr">50:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original identifier">int32_t</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">speed</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">=</span></div>&nbsp;<div style="display: inline;"><span class="original literal">4</span></div><div style="display: inline;"><span class="original punctuation">;</span></div>&nbsp;<div style="display: inline;"><span class="original comment">// 1 = slowest, 10 = fastest</span></div></td></tr>
+<tr><td class="loc" id="loc-51"><span class="line_nr">51:</span><div style="display: inline;"><span class="original punctuation">}</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-52"><span class="line_nr">52:</span></td></tr>
+<tr><td class="loc" id="loc-53"><span class="line_nr">53:</span><div style="display: inline;"><span class="original identifier">class</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">Mob</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">:</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">public</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">Component</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">{</span></div></td></tr>
+<tr><td class="loc" id="loc-54"><span class="line_nr">54:</span><div style="display: inline;"><span class="original identifier">public</span></div><div style="display: inline;"><span class="original punctuation">:</span></div></td></tr>
+<tr><td class="loc" id="loc-55"><span class="line_nr">55:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">static</span></div>&nbsp;<div style="display: inline;"><span class="original keyword">const</span></div>&nbsp;<div style="display: inline;"><span class="original keyword">int</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">TicksPerAction</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">=</span></div>&nbsp;<div style="display: inline;"><span class="original literal">15</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-56"><span class="line_nr">56:</span></td></tr>
+<tr><td class="loc" id="loc-57"><span class="line_nr">57:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original identifier">Mob</span></div><div style="display: inline;"><span class="original punctuation">(</span></div><div style="display: inline;"><span class="original punctuation">)</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">=</span></div>&nbsp;<div style="display: inline;"><span class="original keyword">default</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-58"><span class="line_nr">58:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original identifier">Mob</span></div><div style="display: inline;"><span class="original punctuation">(</span></div><div style="display: inline;"><span class="original keyword">const</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">MobInfo</span></div><div style="display: inline;"><span class="original punctuation">*</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">info</span></div><div style="display: inline;"><span class="original punctuation">)</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">:</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">info</span></div><div style="display: inline;"><span class="original punctuation">{</span></div><div style="display: inline;"><span class="original identifier">info</span></div><div style="display: inline;"><span class="original punctuation">}</span></div>&nbsp;<div style="display: inline;"><span class="original punctuation">{</span></div><div style="display: inline;"><span class="original punctuation">}</span></div></td></tr>
+<tr><td class="loc" id="loc-59"><span class="line_nr">59:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">const</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">MobInfo</span></div><div style="display: inline;"><span class="original punctuation">*</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">info</span></div><div style="display: inline;"><span class="original punctuation">{</span></div><div style="display: inline;"><span class="original punctuation">&amp;</span></div><div style="display: inline;"><span class="original identifier">sMobInfo</span></div><div style="display: inline;"><span class="original punctuation">}</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-60"><span class="line_nr">60:</span></td></tr>
+<tr><td class="loc" id="loc-61"><span class="line_nr">61:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original identifier">vec2i</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">position</span></div><div style="display: inline;"><span class="original punctuation">{</span></div><div style="display: inline;"><span class="original literal">0</span></div><div style="display: inline;"><span class="original punctuation">,</span></div>&nbsp;<div style="display: inline;"><span class="original literal">0</span></div><div style="display: inline;"><span class="original punctuation">}</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-62"><span class="line_nr">62:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original identifier">int32_t</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">health</span></div><div style="display: inline;"><span class="original punctuation">{</span></div><div style="display: inline;"><span class="original literal">0</span></div><div style="display: inline;"><span class="original punctuation">}</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-63"><span class="line_nr">63:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original identifier">int32_t</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">tick</span></div><div style="display: inline;"><span class="original punctuation">{</span></div><div style="display: inline;"><span class="original literal">0</span></div><div style="display: inline;"><span class="original punctuation">}</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-64"><span class="line_nr">64:</span></td></tr>
+<tr><td class="loc" id="loc-65"><span class="line_nr">65:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original comment">// type-specific data</span></div></td></tr>
+<tr><td class="loc" id="loc-66"><span class="line_nr">66:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original identifier">vec2i</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">dir</span></div><div style="display: inline;"><span class="original punctuation">{</span></div><div style="display: inline;"><span class="original literal">0</span></div><div style="display: inline;"><span class="original punctuation">,</span></div>&nbsp;<div style="display: inline;"><span class="original literal">1</span></div><div style="display: inline;"><span class="original punctuation">}</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-67"><span class="line_nr">67:</span></td></tr>
+<tr><td class="loc" id="loc-68"><span class="line_nr">68:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original comment">// additional components (references to children)</span></div></td></tr>
+<tr><td class="loc" id="loc-69"><span class="line_nr">69:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original identifier">ident</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">extraSprite</span></div><div style="display: inline;"><span class="original punctuation">{</span></div><div style="display: inline;"><span class="original identifier">invalid_id</span></div><div style="display: inline;"><span class="original punctuation">}</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-70"><span class="line_nr">70:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original identifier">ident</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">extraSprite2</span></div><div style="display: inline;"><span class="original punctuation">{</span></div><div style="display: inline;"><span class="original identifier">invalid_id</span></div><div style="display: inline;"><span class="original punctuation">}</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-71"><span class="line_nr">71:</span></td></tr>
+<tr><td class="loc" id="loc-72"><span class="line_nr">72:</span><div style="display: inline;"><span class="original identifier">private</span></div><div style="display: inline;"><span class="original punctuation">:</span></div></td></tr>
+<tr><td class="loc" id="loc-73"><span class="line_nr">73:</span>&nbsp;&nbsp;&nbsp;&nbsp;<div style="display: inline;"><span class="original keyword">static</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">MobInfo</span></div>&nbsp;<div style="display: inline;"><span class="original identifier">sMobInfo</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-74"><span class="line_nr">74:</span><div style="display: inline;"><span class="original punctuation">}</span></div><div style="display: inline;"><span class="original punctuation">;</span></div></td></tr>
+<tr><td class="loc" id="loc-75"><span class="line_nr">75:</span></td></tr>
+<tr><td class="loc" id="loc-76"><span class="line_nr">76:</span><div style="display: inline;"><span class="original punctuation">#</span></div><div style="display: inline;"><span class="original identifier">endif</span></div>&nbsp;<div style="display: inline;"><span class="original comment">/* mob_h */</span></div></td></tr>
+</table>
+<script>
+const MAX_NUM_TESTCASES = 2;
+const g_mutids = [];
+const g_mut_st_map = ['unknown','killed','alive','killedByCompiler','timeout','noCoverage','equivalent','skipped','memOverload'];
+const g_mut_kind_map = ['none','rorLT','rorLE','rorGT','rorGE','rorEQ','rorNE','lcrAnd','lcrOr','aorMul','aorDiv','aorRem','aorAdd','aorSub','aorMulAssign','aorDivAssign','aorRemAssign','aorAddAssign','aorSubAssign','uoiPostInc','uoiPostDec','uoiPreInc','uoiPreDec','uoiAddress','uoiIndirection','uoiPositive','uoiNegative','uoiComplement','uoiNegation','uoiSizeof_','absPos','absNeg','absZero','stmtDel','corAnd','corOr','corFalse','corLhs','corRhs','corEQ','corNE','corTrue','rorTrue','rorFalse','dcrTrue','dcrFalse','dcrBomb','dcrCaseDel','rorpLT','rorpLE','rorpGT','rorpGE','rorpEQ','rorpNE','lcrbAnd','lcrbOr','lcrbAndAssign','lcrbOrAssign','lcrbLhs','lcrbRhs','lcrLhs','lcrRhs','lcrTrue','lcrFalse','aorLhs','aorRhs','uoiDel','dcrReturnTrue','dcrReturnFalse','aorsMul','aorsDiv','aorsAdd','aorsSub','aorsMulAssign','aorsDivAssign','aorsAddAssign','aorsSubAssign','crZero'];
+const g_mut_kindGroup_map = ['all','ror','rorp','lcr','aor','uoi','sdl','dcr','lcrb','aors','cr'];
+var g_testcases_kills = {}
+g_testcases_kills['Basic.OneGameStep'] = [197];
+g_testcases_kills['Basic.StepLeft'] = [234];
+var g_mut_description = {};
+g_mut_description[''] = 'Undefined';
+g_mut_description['sdl'] = 'Statement deletion';
+g_mut_description['dcr'] = 'Decision/Condition requirement';
+g_mut_description['rorp'] = 'Relational operator replacement for pointers';
+g_mut_description['lcr'] = 'Logical connector replacement';
+g_mut_description['cr'] = 'Constant replacement';
+g_mut_description['ror'] = 'Relational operator replacement';
+g_mut_description['lcrb'] = 'Logical connector replacement bit-wise';
+g_mut_description['uoi'] = 'Unary operator insert';
+g_mut_description['aor'] = 'Arithmetic operator replacement';
+g_mut_description['aors'] = 'Arithmetic operator replacement simple';
+var g_muts_data = {};
+g_muts_data['-1'] = {'kind' : null, 'kindGroup' : null, 'status' : null, 'testCases' : null, 'orgText' : null, 'mutText' : null, 'meta' : null, 'size' : null};
+</script></body>
+</html>
